@@ -12,10 +12,11 @@ namespace GearShop.Models
         public string BrandName { get; set; } = null!;
         public DateTime CreateDate { get; set; } = DateTime.Now;
         public string CreatedBy { get; set; } = null!;
-        public DateTime ModifiedDate { get; set; }
+        public DateTime? ModifiedDate { get; set; }
         public string? ModifiedBy { get; set; }
         public int Status { get; set; }
         public virtual ICollection<Product> Products { get; set; } = new List<Product>();
+        public virtual ICollection<ProductType> ProductTypes { get; set; } = new List<ProductType>();
     }
 }
 

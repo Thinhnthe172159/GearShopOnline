@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace GearShop.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250415072756_new3")]
-    partial class new3
+    [Migration("20250416121502_2")]
+    partial class _2
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -24,6 +24,21 @@ namespace GearShop.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
+
+            modelBuilder.Entity("BrandProductType", b =>
+                {
+                    b.Property<int>("BrandsId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ProductTypesId")
+                        .HasColumnType("int");
+
+                    b.HasKey("BrandsId", "ProductTypesId");
+
+                    b.HasIndex("ProductTypesId");
+
+                    b.ToTable("BrandProductType");
+                });
 
             modelBuilder.Entity("GearShop.Models.Brand", b =>
                 {
@@ -47,7 +62,7 @@ namespace GearShop.Migrations
                     b.Property<string>("ModifiedBy")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<DateTime>("ModifiedDate")
+                    b.Property<DateTime?>("ModifiedDate")
                         .HasColumnType("datetime2");
 
                     b.Property<int>("Status")
@@ -55,7 +70,7 @@ namespace GearShop.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Brands");
+                    b.ToTable("brands");
                 });
 
             modelBuilder.Entity("GearShop.Models.Cart", b =>
@@ -82,7 +97,7 @@ namespace GearShop.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Carts");
+                    b.ToTable("carts");
                 });
 
             modelBuilder.Entity("GearShop.Models.Comment", b =>
@@ -107,7 +122,7 @@ namespace GearShop.Migrations
 
                     b.HasIndex("ProductId");
 
-                    b.ToTable("Comments");
+                    b.ToTable("comments");
                 });
 
             modelBuilder.Entity("GearShop.Models.Order", b =>
@@ -137,7 +152,7 @@ namespace GearShop.Migrations
 
                     b.HasIndex("ProductId");
 
-                    b.ToTable("Orders");
+                    b.ToTable("orders");
                 });
 
             modelBuilder.Entity("GearShop.Models.Product", b =>
@@ -196,7 +211,7 @@ namespace GearShop.Migrations
 
                     b.HasIndex("ProductTypeId");
 
-                    b.ToTable("Products");
+                    b.ToTable("products");
                 });
 
             modelBuilder.Entity("GearShop.Models.ProductImage", b =>
@@ -218,7 +233,7 @@ namespace GearShop.Migrations
 
                     b.HasIndex("ProductId");
 
-                    b.ToTable("ProductImages");
+                    b.ToTable("productImages");
                 });
 
             modelBuilder.Entity("GearShop.Models.ProductType", b =>
@@ -251,7 +266,7 @@ namespace GearShop.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("ProductTypes");
+                    b.ToTable("productTypes");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
@@ -494,6 +509,21 @@ namespace GearShop.Migrations
                         .HasColumnType("int");
 
                     b.HasDiscriminator().HasValue("ApplicationUser");
+                });
+
+            modelBuilder.Entity("BrandProductType", b =>
+                {
+                    b.HasOne("GearShop.Models.Brand", null)
+                        .WithMany()
+                        .HasForeignKey("BrandsId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("GearShop.Models.ProductType", null)
+                        .WithMany()
+                        .HasForeignKey("ProductTypesId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("GearShop.Models.Cart", b =>

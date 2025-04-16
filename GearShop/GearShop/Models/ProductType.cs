@@ -16,5 +16,6 @@ namespace GearShop.Models
         public string? MofifiedBy { get; set; }
         public int Status { get; set; }
         public virtual ICollection<Product> Products { get; set; } = new List<Product>();
+        public virtual ICollection<Brand> Brands { get; set; } = new List<Brand>();
     }
 }
