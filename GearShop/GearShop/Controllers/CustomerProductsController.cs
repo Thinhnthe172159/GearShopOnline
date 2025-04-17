@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using GearShop.Data;
 using GearShop.Models;
+using X.PagedList.Extensions;
 
 namespace GearShop.Controllers
 {
@@ -19,11 +20,13 @@ namespace GearShop.Controllers
             _context = context;
         }
 
-        public async Task<IActionResult> Index()
+        public IActionResult Index()
         {
-            var applicationDbContext = _context.products.Include(p => p.Brand).Include(p => p.ProductType);
-            return View(await applicationDbContext.ToListAsync());
+            var applicationDbContext = _context.products.Include(p => p.Brand).Include(p => p.ProductType).Include(a => a.Images);
+            return View(applicationDbContext.ToPagedList(1, 20));
         }
+
+        //public IActionResult
 
         // GET: CustomerProducts/Details/5
         public async Task<IActionResult> Details(long? id)
@@ -35,7 +38,7 @@ namespace GearShop.Controllers
 
             var product = await _context.products
                 .Include(p => p.Brand)
-                .Include(p => p.ProductType)
+                .Include(p => p.ProductType).Include(p=>p.Images)
                 .FirstOrDefaultAsync(m => m.Id == id);
             if (product == null)
             {

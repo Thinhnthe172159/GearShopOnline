@@ -12,6 +12,7 @@ namespace GearShop.Models
         public string TypeName { get; set; } = null!;
         public DateTime DateTime { get; set; } = DateTime.Now;
         public string CreatedBy { get; set; } = null!;
+        public string? ImageUrl { get; set; }
         public DateTime? ModifiedDate { get; set; }
         public string? MofifiedBy { get; set; }
         public int Status { get; set; }
