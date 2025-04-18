@@ -143,6 +143,9 @@ namespace GearShop.Migrations
                     b.Property<int>("Quantity")
                         .HasColumnType("int");
 
+                    b.Property<double>("SoldPrice")
+                        .HasColumnType("float");
+
                     b.HasKey("Id");
 
                     b.HasIndex("CustomerId");
@@ -222,6 +225,9 @@ namespace GearShop.Migrations
                     b.Property<string>("ImageUrl")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("Isthumbnail")
+                        .HasColumnType("int");
 
                     b.Property<long>("ProductId")
                         .HasColumnType("bigint");

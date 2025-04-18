@@ -11,6 +11,7 @@ using X.PagedList.Extensions;
 
 namespace GearShop.Controllers
 {
+    [AllowOnlyCustomerOrGuest]
     public class CustomerProductsController : Controller
     {
         private readonly ApplicationDbContext _context;
