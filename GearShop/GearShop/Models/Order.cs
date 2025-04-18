@@ -11,6 +11,7 @@ namespace GearShop.Models
         public long ProductId { get; set; }
         public int Quantity { get; set; }
         public string CustomerId { get; set; } = null!;
+        public double SoldPrice { get; set; }
         public DateTime CreateDate { get; set; } = DateTime.Now;
         [ForeignKey(nameof(ProductId))]
         public virtual Product Product { get; set; } = null!;
