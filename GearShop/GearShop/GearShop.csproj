@@ -19,7 +19,15 @@
 	</ItemGroup>
 
 	<ItemGroup>
+	  <Folder Include="wwwroot\DashBroadTemplate\img\" />
 	  <Folder Include="wwwroot\product_img\" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <Content Update="wwwroot\img\user.jpg">
+	    <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+	    <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+	  </Content>
 	</ItemGroup>
 
 </Project>
