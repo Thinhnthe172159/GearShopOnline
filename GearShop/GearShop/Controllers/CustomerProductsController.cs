@@ -8,6 +8,7 @@ using Microsoft.EntityFrameworkCore;
 using GearShop.Data;
 using GearShop.Models;
 using X.PagedList.Extensions;
+using Microsoft.Identity.Client;
 
 namespace GearShop.Controllers
 {
@@ -21,13 +22,39 @@ namespace GearShop.Controllers
             _context = context;
         }
 
-        public IActionResult Index()
-        {
-            var applicationDbContext = _context.products.Include(p => p.Brand).Include(p => p.ProductType).Include(a => a.Images);
-            return View(applicationDbContext.ToPagedList(1, 20));
-        }
+        //public IActionResult Index()
+        //{
+        //    var applicationDbContext = _context.products.Include(p => p.Brand).Include(p => p.ProductType).Include(a => a.Images);
+        //    return View(applicationDbContext.ToPagedList(1, 20));
+        //}
 
-        //public IActionResult
+
+        public IActionResult Index(string? search, int brandId, int typeId, int page = 1, int size = 12)
+        {
+            var productRresults = _context.products.Include(a => a.Brand).Include(p => p.ProductType).Include(a => a.Images).AsQueryable();
+            if (!string.IsNullOrEmpty(search))
+            {
+                productRresults = productRresults.Where(p => p.ProductName.ToLower().Contains(search.ToLower()) || p.Brand.BrandName.ToLower().Contains(search.ToLower()));
+            }
+            if (brandId != 0)
+            {
+                productRresults = productRresults.Where(p => p.BrandId == brandId);
+            }
+            if (typeId != 0)
+            {
+                productRresults = productRresults.Where(p => p.ProductTypeId == typeId);
+            }
+            ViewBag.CurrentFilter = new
+            {
+                search = search,
+                brandId = brandId,
+                typeId = typeId,
+                page = page,
+                size = size
+            };
+
+            return View(productRresults.ToPagedList(page, size));
+        }
 
         // GET: CustomerProducts/Details/5
         public async Task<IActionResult> Details(long? id)
@@ -39,7 +66,7 @@ namespace GearShop.Controllers
 
             var product = await _context.products
                 .Include(p => p.Brand)
-                .Include(p => p.ProductType).Include(p=>p.Images)
+                .Include(p => p.ProductType).Include(p => p.Images)
                 .FirstOrDefaultAsync(m => m.Id == id);
             if (product == null)
             {

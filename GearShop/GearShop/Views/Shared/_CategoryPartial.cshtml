@@ -4,8 +4,27 @@
 @inject ApplicationDbContext _context
 
 @{
-	var productTypeList = _context.productTypes.Include(a => a.Brands.Where(a => a.Status == 1)).Where(a => a.Status == 1).ToList();
+	var productTypeList = _context.productTypes.Include(a => a.Brands.Where(a => a.Status == 1)).Include(a => a.Products).Where(a => a.Status == 1).ToList();
 }
+<style>
+    .brand-dropdown {
+        top: 0;
+        left: 100%;
+        display: none;
+        margin-left: 0.5rem;
+        z-index: 1050;
+    }
+
+    .nav-item.dropdown:hover .brand-dropdown {
+        display: block;
+    }
+
+    /* Fix z-index cha để brand không bị ẩn */
+    .navbar-nav {
+        position: relative;
+        z-index: 100;
+    }
+</style>
 
 
 <div class="col-lg-3 d-none d-lg-block">
@@ -18,15 +37,35 @@
 
 			@foreach (var item in productTypeList)
 			{
-				<div class="nav-item dropdown dropright">
-					<a href="#" class="nav-link dropdown-toggle" data-toggle="dropdown">@item.TypeName<i class="fa fa-angle-right float-right mt-1"></i></a>
-					<div class="dropdown-menu position-absolute rounded-0 border-0 m-0">
-						@foreach (var b in item.Brands)
-						{
-							<a href="" class="dropdown-item">@b.BrandName</a>
-						}
-					</div>
-				</div>
+                <div class="nav-item dropdown position-relative">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <!-- Link loại sản phẩm -->
+                        <a asp-controller="Customerproducts" asp-action="Index"
+                           asp-route-typeId="@item.Id"
+                           class="text-dark flex-grow-1 px-3 py-2" style="text-decoration: none;">
+                            @item.TypeName
+                        </a>
+
+                        <!-- Nút hiện brand -->
+                        <a href="#" class="text-primary px-2 py-2 dropdown-toggle"
+                           data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false"
+                           style="white-space: nowrap; text-decoration: none;">
+                            (@item.Products.Count()) <i class="fa fa-angle-right"></i>
+                        </a>
+                    </div>
+
+                    <!-- Dropdown thương hiệu -->
+                    <div class="dropdown-menu brand-dropdown position-absolute">
+                        @foreach (var b in item.Brands)
+                        {
+                            <a asp-controller="Customerproducts" asp-action="Index"
+                               asp-route-typeId="@item.Id" asp-route-brandId="@b.Id"
+                               class="dropdown-item">
+                                @b.BrandName (@(_context.products.Count(p => p.BrandId == b.Id && p.ProductTypeId == item.Id)))
+                            </a>
+                        }
+                    </div>
+                </div>
 			}
 
 		</div>
