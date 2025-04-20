@@ -1,4 +1,4 @@
-/********** Template CSS **********/
+﻿/********** Template CSS **********/
 :root {
     --primary: #009CFF;
     --light: #F3F6F9;
@@ -71,7 +71,7 @@
     top: 0;
     left: 0;
     bottom: 0;
-    width: 265px;
+    width: 260px;
     height: 100vh;
     overflow-y: auto;
     background: var(--light);
@@ -80,7 +80,7 @@
 }
 
 .content {
-    margin-left: 250px;
+    margin-left: 240px;
     min-height: 100vh;
     background: #FFFFFF;
     transition: 0.5s;
@@ -280,4 +280,19 @@
 .testimonial-carousel .owl-dot.active {
     background: var(--dark);
     border-color: var(--primary);
+}
+
+/*** Table ***/
+.table-responsive {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+.table thead th {
+    white-space: nowrap;
+    overflow: visible;
+    position: sticky;
+    top: 0;
+    background-color: var(--light);
+    z-index: 1;
 }
