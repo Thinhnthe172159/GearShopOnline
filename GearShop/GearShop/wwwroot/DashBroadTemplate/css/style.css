@@ -71,7 +71,7 @@
     top: 0;
     left: 0;
     bottom: 0;
-    width: 250px;
+    width: 265px;
     height: 100vh;
     overflow-y: auto;
     background: var(--light);
@@ -129,6 +129,9 @@
     border-left: 3px solid var(--light);
     border-radius: 0 30px 30px 0;
     outline: none;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .sidebar .navbar .navbar-nav .nav-link:hover,
@@ -171,6 +174,9 @@
 .sidebar .navbar .dropdown-item {
     padding-left: 25px;
     border-radius: 0 30px 30px 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .content .navbar .navbar-nav .nav-link {
