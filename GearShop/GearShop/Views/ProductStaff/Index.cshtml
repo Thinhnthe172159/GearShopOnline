@@ -1,0 +1,89 @@
+﻿@model IEnumerable<GearShop.Models.Product>
+
+@{
+    ViewData["Title"] = "Quản lý sản phẩm";
+    Layout = "_LayoutStaff";
+}
+
+<div class="container-fluid pt-4 px-4">
+    <div class="row g-4">
+        <div class="col-12">
+            <div class="bg-light rounded h-100 p-4">
+                <div class="d-flex align-items-center justify-content-between mb-4">
+                    <h4 class="mb-0">Danh sách sản phẩm</h4>
+                    <a asp-action="Create" class="btn btn-primary">
+                        <i class="fa fa-plus me-2"></i>Tạo mới
+                    </a>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Tên sản phẩm</th>
+                                <th>Mô tả</th>
+                                <th>Số lượng</th>
+                                <th>Giá</th>
+                                <th>Thương hiệu</th>
+                                <th>Loại sản phẩm</th>
+                                <th>Trạng thái</th>
+                                <th>Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in Model)
+                            {
+                                <tr>
+                                    <td>@Html.DisplayFor(modelItem => item.ProductName)</td>
+                                    <td class="text-truncate" style="max-width: 200px;" title="@item.Description">
+                                        @item.Description
+                                    </td>
+                                    <td>@Html.DisplayFor(modelItem => item.Quantity)</td>
+                                    <td>@item.Price.ToString("C")</td>
+                                    <td>@Html.DisplayFor(modelItem => item.Brand.BrandName)</td>
+                                    <td>@Html.DisplayFor(modelItem => item.ProductType.TypeName)</td>
+                                    <td>
+                                        @if (item.Status == 1)
+                                        {
+                                            <span class="badge bg-success">Active</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-danger">Inactive</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        <div class="btn-group" role="group">
+                                            <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-warning">
+                                                <i class="fa fa-edit"></i>
+                                            </a>
+                                            <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-info">
+                                                <i class="fa fa-eye"></i>
+                                            </a>
+                                            <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-sm btn-danger">
+                                                <i class="fa fa-trash"></i>
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+
+				@*<!-- Phân trang (nếu cần) -->*@
+                 <div class="d-flex justify-content-center mt-3">
+                    <nav>
+                        <ul class="pagination">
+                            <li class="page-item"><a class="page-link" href="#">Previous</a></li>
+                            <li class="page-item active"><a class="page-link" href="#">1</a></li>
+                            <li class="page-item"><a class="page-link" href="#">2</a></li>
+                            <li class="page-item"><a class="page-link" href="#">3</a></li>
+                            <li class="page-item"><a class="page-link" href="#">Next</a></li>
+                        </ul>
+                    </nav>
+                </div> 
+            </div>
+        </div>
+    </div>
+</div>
