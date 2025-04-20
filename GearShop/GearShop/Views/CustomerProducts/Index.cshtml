@@ -189,15 +189,39 @@
 
 
 				<div class="col-12">
-					<nav>
-						<ul class="pagination justify-content-center">
-							<li class="page-item disabled"><a class="page-link" href="#"><span>Previous</span></a></li>
-							<li class="page-item active"><a class="page-link" href="#">1</a></li>
-							<li class="page-item"><a class="page-link" href="#">2</a></li>
-							<li class="page-item"><a class="page-link" href="#">3</a></li>
-							<li class="page-item"><a class="page-link" href="#">Next</a></li>
-						</ul>
-					</nav>
+					@Html.PagedListPager(Model, page => Url.Action("Index", new
+						{
+							page,
+							search = ViewBag.CurrentFilter.search,
+							brandId = ViewBag.CurrentFilter.brandId,
+							typeId = ViewBag.CurrentFilter.typeId,
+							size = ViewBag.CurrentFilter.size,
+							
+						}), new PagedListRenderOptions
+{
+	DisplayLinkToFirstPage = PagedListDisplayMode.Always,
+	DisplayLinkToLastPage = PagedListDisplayMode.Always,
+	DisplayLinkToPreviousPage = PagedListDisplayMode.Always,
+	DisplayLinkToNextPage = PagedListDisplayMode.Always,
+	DisplayLinkToIndividualPages = true,
+	DisplayPageCountAndCurrentLocation = false,
+	MaximumPageNumbersToDisplay = 5,
+	DisplayEllipsesWhenNotShowingAllPageNumbers = true,
+	EllipsesFormat = "…",
+	LinkToFirstPageFormat = "First",
+	LinkToPreviousPageFormat = "<",
+	LinkToNextPageFormat = ">",
+	LinkToLastPageFormat = "Last",
+	PageCountAndCurrentLocationFormat = "Page {0} of {1}.",
+	ItemSliceAndTotalFormat = "Showing items {0} through {1} of {2}.",
+	FunctionToDisplayEachPageNumber = (pageNumber => pageNumber.ToString()),
+	ClassToApplyToFirstListItemInPager = "first",
+	ClassToApplyToLastListItemInPager = "last",
+	ContainerDivClasses = new[] { "pagination-container" },
+	UlElementClasses = new[] { "pagination" },
+	LiElementClasses = new[] { "page-item" },
+	PageClasses = new[] { "page-link" }
+})
 				</div>
 			</div>
 		</div>

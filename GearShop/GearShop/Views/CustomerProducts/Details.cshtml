@@ -1,6 +1,10 @@
-﻿@model GearShop.Models.Product
+﻿@using Microsoft.AspNetCore.Identity
+@model GearShop.Models.Product
+@inject UserManager<IdentityUser> UserManager
+@inject GearShop.Data.ApplicationDbContext _context
 
 @{
+	var user = await UserManager.GetUserAsync(User);
 	ViewData["Title"] = Model.ProductName;
 }
 
@@ -65,14 +69,16 @@
 				<div class="d-flex">
 					<strong class="text-dark mr-3">Số lượng còn:</strong><p class="border border-1 text-success">@Model.Quantity</p>
 				</div>
-				<div class="d-flex align-items-center mb-4 pt-2">
+				<form asp-controller="CustomerCarts" asp-action="create" class="d-flex align-items-center mb-4 pt-2">
 					<div class="input-group quantity mr-3" style="width: 130px;">
 						<div class="input-group-btn">
 							<button class="btn btn-primary btn-minus">
 								<i class="fa fa-minus"></i>
 							</button>
 						</div>
-						<input type="text" class="form-control bg-secondary border-0 text-center" value="1">
+						<input type="text" hidden name="userId" value="@(user!=null?user.Id:"")" />
+						<input type="number" hidden name="productId" value="@Model.Id" />
+						<input type="number" class="form-control bg-secondary border-0 text-center" name="quantity" value="1">
 						<div class="input-group-btn">
 							<button class="btn btn-primary btn-plus">
 								<i class="fa fa-plus"></i>
@@ -83,7 +89,7 @@
 						<i class="fa fa-shopping-cart mr-1"></i> Add To
 						Cart
 					</button>
-				</div>
+				</form>
 				<div class="d-flex pt-2">
 					<strong class="text-dark mr-2">Share on:</strong>
 					<div class="d-inline-flex">
