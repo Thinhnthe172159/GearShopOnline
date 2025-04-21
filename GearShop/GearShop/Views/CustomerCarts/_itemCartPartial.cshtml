@@ -1,0 +1,36 @@
+﻿@model IEnumerable<GearShop.Models.Cart>
+@foreach (var item in Model)
+{
+	<tr>
+		<td><input type="checkbox" class="form-check-input" style="height:20px;width:20px" name="productId" value="@item.ProductId" /></td>
+		<td>
+			@if (item.Product.Images.Count() != 0)
+			{
+				<img class="img-fluid" src="@((item.Product.Images.Where(a=>a.Isthumbnail == 1)).Count() == 1 ? item.Product.Images.FirstOrDefault(a=>a.Isthumbnail == 1).ImageUrl:item.Product.Images.FirstOrDefault().ImageUrl)" alt="" style="width: 100%; height: 100%; object-fit: cover;">
+			}
+			else
+			{
+				<img class="img-fluid" src="~/sourceimg/NoImage.jpg" alt="" style="width: 100%; height: 100%; object-fit: cover;">
+			}
+		</td>
+		<td class="align-middle" style="font-size:12px;display: inline-block; width: 40ch; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"><textarea cols="10" rows="2">@item.Product.ProductName</textarea> </td>
+
+		<td class="align-middle">
+			<div class="input-group quantity mx-auto" style="width: 100px;">
+				<div class="input-group-btn">
+					<button class="btn btn-sm btn-primary btn-minus">
+						<i class="fa fa-minus"></i>
+					</button>
+				</div>
+				<input type="text" class="form-control form-control-sm bg-secondary border-0 text-center" value="@item.Quantity" readonly>
+				<div class="input-group-btn">
+					<button class="btn btn-sm btn-primary btn-plus">
+						<i class="fa fa-plus"></i>
+					</button>
+				</div>
+			</div>
+		</td>
+		<td class="align-middle" style="font-size:12px">@item.Product.Price.ToString("c0", new System.Globalization.CultureInfo("vi-VN"))</td>
+		<td class="align-middle"><button class="btn btn-sm btn-danger"><i class="fa fa-times"></i></button></td>
+	</tr>
+}

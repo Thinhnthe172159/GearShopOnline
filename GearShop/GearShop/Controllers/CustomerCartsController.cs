@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using GearShop.Data;
 using GearShop.Models;
+using AspNetCoreGeneratedDocument;
 
 namespace GearShop.Controllers
 {
@@ -48,8 +49,7 @@ namespace GearShop.Controllers
 
         // add to cart
         [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(string userId, long productId, int quantity = 1)
+        public async Task<IActionResult> AddToCart(string userId, long productId, int quantity = 1)
         {
             var cart = new Cart { UserId = userId, ProductId = productId, Quantity = quantity };
             var productIncart = _context.carts.FirstOrDefault(p => p.ProductId == productId);
@@ -59,7 +59,6 @@ namespace GearShop.Controllers
                 {
                     _context.Add(cart);
                     await _context.SaveChangesAsync();
-                    return RedirectToAction(nameof(Index));
                 }
                 catch (Exception) { }
             }
@@ -69,10 +68,7 @@ namespace GearShop.Controllers
                 _context.carts.Update(productIncart);
                 await _context.SaveChangesAsync();
             }
-
-            ViewData["UserId"] = new SelectList(_context.ApplicationUsers, "Id", "Id", cart.UserId);
-            ViewData["ProductId"] = new SelectList(_context.products, "Id", "Id", cart.ProductId);
-            return RedirectToAction(nameof(Details), nameof(CustomerProductsController), new { Id = productId });
+            return PartialView("_userCartPartial");
         }
 
         // GET: CustomerCarts/Edit/5

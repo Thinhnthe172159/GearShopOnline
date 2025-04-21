@@ -1,4 +1,5 @@
-﻿@using Microsoft.AspNetCore.Identity
+﻿@using Microsoft.EntityFrameworkCore
+@using Microsoft.AspNetCore.Identity
 @inject SignInManager<IdentityUser> SignInManager
 @inject UserManager<IdentityUser> UserManager
 @inject GearShop.Data.ApplicationDbContext _context
@@ -7,6 +8,7 @@
 	var user = await UserManager.GetUserAsync(User);
 	var roles = user != null ? await UserManager.GetRolesAsync(user) : new List<string>();
 }
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -16,6 +18,9 @@
 	<partial name="_css" />
 </head>
 <body>
+
+	<!-- Ntitfication -->
+	<partial name="_NotificationPartial" />
 	<!-- Topbar Start -->
 	@if (!roles.Contains("Staff") && !roles.Contains("Staff"))
 	{
@@ -84,16 +89,10 @@
 								</form>
 							</div>
 						}
-						@if (SignInManager.IsSignedIn(User) && !roles.Contains("Staff") && !roles.Contains("Staff"))
-						{
-							<div class="navbar-nav ml-auto py-0 d-none d-lg-block m-3">
-								<a asp-action="Index" asp-controller="CustomerCarts" asp-route-Id="@(user!= null?user.Id:"")" class="btn px-0 ml-3">
-									<i class="fas fa-shopping-cart text-primary"></i>
-									<span class="badge text-secondary border border-secondary rounded-circle" style="padding-bottom: 2px;">0</span>
-								</a>
-							</div>
-						}
-
+					
+						<div id="userCart" class="navbar-nav ml-auto py-0 d-none d-lg-block m-3">
+							<partial name="_userCartPartial" />
+						</div>
 
 						<div class="navbar-nav">
 							<div class="d-inline-flex align-items-center">
@@ -199,6 +198,7 @@
 	<script src="~/lib/jquery/dist/jquery.min.js"></script>
 	<script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
 	<script src="~/js/site.js" asp-append-version="true"></script>
+	<script src="~/js/Cart.js"></script>
 	@await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>
