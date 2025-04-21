@@ -9,7 +9,7 @@
 	var user = await UserManager.GetUserAsync(User);
 	var roles = user != null ? await UserManager.GetRolesAsync(user) : new List<string>();
 }
-
+<partial name="_NotificationPartial" />
 @if (SignInManager.IsSignedIn(User) && !roles.Contains("Staff") && !roles.Contains("Staff"))
 {
 	int countItem = 0;
@@ -24,4 +24,4 @@
 			<span class="badge text-secondary border border-secondary rounded-circle" style="padding-bottom: 2px;">@countItem</span>
 		</a>
 	
-}
+} 

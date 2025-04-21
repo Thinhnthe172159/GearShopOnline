@@ -1,36 +1,141 @@
 ﻿@model IEnumerable<GearShop.Models.Cart>
-@foreach (var item in Model)
-{
-	<tr>
-		<td><input type="checkbox" class="form-check-input" style="height:20px;width:20px" name="productId" value="@item.ProductId" /></td>
-		<td>
-			@if (item.Product.Images.Count() != 0 )
-			{
-				<img class="img-fluid" src="@((item.Product.Images.Where(a=>a.Isthumbnail == 1)).Count() == 1 ? item.Product.Images.FirstOrDefault(a=>a.Isthumbnail == 1)?.ImageUrl:item.Product.Images.FirstOrDefault()?.ImageUrl)" alt="" style="width: 100%; height: 100%; object-fit: cover;">
-			}
-			else
-			{
-				<img class="img-fluid" src="~/sourceimg/NoImage.jpg" alt="" style="width: 100%; height: 100%; object-fit: cover;">
-			}
-		</td>
-		<td class="align-middle" style="font-size:12px;display: inline-block; width: 40ch; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"><textarea cols="10" rows="2">@item.Product.ProductName</textarea> </td>
+<script src="~/lib/jquery/dist/jquery.min.js"></script>
+<table class="table table-light table-borderless table-hover text-center mb-0">
+    <thead class="thead-dark">
+        <tr>
+            <th style="width:20px">Chọn</th>
+            <th style="width:100px">Ảnh</th>
+            <th style="width:300px">Sản phẩm</th>
+            <th style="width:100px">Số lượng</th>
+            <th style="width:130px">Giá</th>
+            <th style="width:100px">Hành động</th>
+        </tr>
+    </thead>
+    <tbody class="align-middle">
+        @foreach (var item in Model)
+        {
+            <tr data-id="@item.Id">
+                <td style="width:20px"><input type="checkbox" class="form-check-input" style="height:20px;width:20px" name="productId" value="@item.ProductId" /></td>
+                <td>
+                    @if (item.Product.Images.Count() != 0)
+                    {
+                        <img class="img-fluid" src="@((item.Product.Images.Where(a=>a.Isthumbnail == 1)).Count() == 1 ? item.Product.Images.FirstOrDefault(a=>a.Isthumbnail == 1)?.ImageUrl:item.Product.Images.FirstOrDefault()?.ImageUrl)" alt="" style="width: 100px; height: 100px; object-fit: cover;">
+                    }
+                    else
+                    {
+                        <img class="img-fluid" src="~/sourceimg/NoImage.jpg" alt="" style="width: 100px; height: 100px; object-fit: cover;">
+                    }
+                </td>
+                <td class="align-middle" style="font-size:12px;width:300px">@item.Product.ProductName </td>
+                <td style="width:100px" class="align-middle">
+                    <div class="input-group quantity mx-auto" style="width: 100px;">
+                        <div class="input-group-btn">
+                            <button class="btn btn-sm btn-primary btn-minus" data-action="decrease">
+                                <i class="fa fa-minus"></i>
+                            </button>
+                        </div>
+                        <input type="text" class="form-control form-control-sm bg-secondary border-0 text-center quantity-input" value="@item.Quantity" readonly>
+                        <div class="input-group-btn">
+                            <button class="btn btn-sm btn-primary btn-plus" data-action="increase">
+                                <i class="fa fa-plus"></i>
+                            </button>
+                        </div>
+                    </div>
+                </td>
+                <td style="width:130px" class="align-middle">@((item.Product.Price*item.Quantity).ToString("c0", new System.Globalization.CultureInfo("vi-VN")))</td>
+                <td style="width:100px" class="align-middle">
+                    <form class="remove-item-form" method="post" data-id="@item.Id">
+                        <input type="number" name="id" value="@item.Id" hidden />
+                        <button type="submit" class="btn btn-primary"><i class="fa fa-trash"></i></button>
+                    </form>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
 
-		<td class="align-middle">
-			<div class="input-group quantity mx-auto" style="width: 100px;">
-				<div class="input-group-btn">
-					<button class="btn btn-sm btn-primary btn-minus">
-						<i class="fa fa-minus"></i>
-					</button>
-				</div>
-				<input type="text" class="form-control form-control-sm bg-secondary border-0 text-center" value="@item.Quantity" readonly>
-				<div class="input-group-btn">
-					<button class="btn btn-sm btn-primary btn-plus">
-						<i class="fa fa-plus"></i>
-					</button>
-				</div>
-			</div>
-		</td>
-		<td class="align-middle" style="font-size:12px">@item.Product.Price.ToString("c0", new System.Globalization.CultureInfo("vi-VN"))</td>
-		<td class="align-middle"><button class="btn btn-sm btn-danger"><i class="fa fa-times"></i></button></td>
-	</tr>
-}
+<script>
+    $(document).ready(function () {
+        function saveCheckboxStates() {
+            var checkedProductIds = [];
+            $('tbody input[name="productId"]').each(function () {
+                if ($(this).is(':checked')) {
+                    checkedProductIds.push($(this).val());
+                }
+            });
+            localStorage.setItem('checkedProductIds', JSON.stringify(checkedProductIds));
+        }
+
+        function restoreCheckboxStates() {
+            var checkedProductIds = JSON.parse(localStorage.getItem('checkedProductIds')) || [];
+            $('tbody input[name="productId"]').each(function () {
+                var productId = $(this).val();
+                if (checkedProductIds.includes(productId)) {
+                    $(this).prop('checked', true);
+                }
+            });
+        }
+
+        restoreCheckboxStates();
+
+        $('tbody').on('change', 'input[name="productId"]', function () {
+            saveCheckboxStates();
+        });
+
+        $('tbody').on('submit', '.remove-item-form', function (e) {
+            e.preventDefault();
+            var form = $(this);
+            var formData = form.serialize();
+            var id = form.data('id');
+
+            $.ajax({
+                type: 'POST',
+                url: '@Url.Action("DeleteConfirmed", "CustomerCarts")',
+                data: formData,
+                success: function (res) {
+                    console.log('ahihi' + id);
+                    $('#_itemCartPartial').html(res);
+                   
+                    restoreCheckboxStates();
+                },
+                error: function (xhr, status, error) {
+                    console.error('Vãi cả lỗi kìa', error);
+                }
+            });
+        });
+
+     
+        $('tbody').on('click', '.btn-minus, .btn-plus', function () {
+            var button = $(this);
+            var action = button.data('action');
+            var row = button.closest('tr');
+            var id = row.data('id');
+            var input = row.find('.quantity-input');
+            var currentQuantity = parseInt(input.val());
+
+
+            if (action === 'increase') {
+                currentQuantity += 1;
+            } else if (action === 'decrease' && currentQuantity > 1) {
+                currentQuantity -= 1;
+            }
+
+
+            input.val(currentQuantity);
+
+
+            $.ajax({
+                type: 'POST',
+                url: '@Url.Action("Edit", "CustomerCarts")',
+                data: { id: id, quantity: currentQuantity },
+                success: function (res) {
+                  
+                    $('#_itemCartPartial').html(res);
+                    restoreCheckboxStates();
+                },
+                error: function (xhr, status, error) {
+                }
+            });
+        });
+    });
+</script>

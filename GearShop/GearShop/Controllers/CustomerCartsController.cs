@@ -8,22 +8,33 @@ using Microsoft.EntityFrameworkCore;
 using GearShop.Data;
 using GearShop.Models;
 using AspNetCoreGeneratedDocument;
+using Microsoft.EntityFrameworkCore.Metadata.Conventions;
+using Microsoft.AspNetCore.Identity;
 
 namespace GearShop.Controllers
 {
     public class CustomerCartsController : Controller
     {
         private readonly ApplicationDbContext _context;
+        private readonly UserManager<IdentityUser> _userManager;
 
-        public CustomerCartsController(ApplicationDbContext context)
+        public CustomerCartsController(ApplicationDbContext context, UserManager<IdentityUser> userManager)
         {
             _context = context;
+            _userManager = userManager;
         }
+
 
         // GET: CustomerCarts
         public async Task<IActionResult> Index(string Id)
         {
-            var applicationDbContext = _context.carts.Include(c => c.Customer).Include(c => c.Product);
+            var user = await _userManager.GetUserAsync(User);
+            string id = string.Empty;
+            if (user != null)
+            {
+                id = user.Id;
+            }
+            var applicationDbContext = _context.carts.Include(c => c.Customer).Include(c => c.Product).Include(c => c.Product.Images).Where(c => c.UserId == id);
             return View(await applicationDbContext.ToListAsync());
         }
 
@@ -59,6 +70,7 @@ namespace GearShop.Controllers
                 {
                     _context.Add(cart);
                     await _context.SaveChangesAsync();
+                    TempData["Noti"] = "Đã thêm sản phẩm vào giỏ hàng!";
                 }
                 catch (Exception) { }
             }
@@ -67,99 +79,74 @@ namespace GearShop.Controllers
                 productIncart.Quantity += 1;
                 _context.carts.Update(productIncart);
                 await _context.SaveChangesAsync();
+                TempData["Noti"] = "Sản phẩm đã tồn tại trong giỏ hàng,\n Đã cập nhật số lượng sản phẩm trong giỏ hàng!";
             }
             return PartialView("_userCartPartial");
         }
 
-        // GET: CustomerCarts/Edit/5
-        public async Task<IActionResult> Edit(long? id)
-        {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var cart = await _context.carts.FindAsync(id);
-            if (cart == null)
-            {
-                return NotFound();
-            }
-            ViewData["UserId"] = new SelectList(_context.ApplicationUsers, "Id", "Id", cart.UserId);
-            ViewData["ProductId"] = new SelectList(_context.products, "Id", "Id", cart.ProductId);
-            return View(cart);
-        }
-
-        // POST: CustomerCarts/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
+        //update quantity of product
         [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(long id, [Bind("Id,ProductId,UserId,Quantity")] Cart cart)
+        public async Task<IActionResult> Edit(long id, int quantity)
         {
-            if (id != cart.Id)
+
+            var itemCart = _context.carts.Find(id);
+            if (itemCart != null)
             {
-                return NotFound();
+              
+                    try
+                    {
+                        itemCart.Quantity = quantity;
+                        _context.carts.Update(itemCart);
+                        await _context.SaveChangesAsync();
+                    }
+                    catch (Exception)
+                    {
+
+                    }
+                
+                //else
+                //{
+                //    ViewData["Noti"] = "Số lượng vượt quá giới hạn!";
+                //}
             }
 
-            if (ModelState.IsValid)
+            var user = await _userManager.GetUserAsync(User);
+            string Id = string.Empty;
+            if (user != null)
             {
-                try
-                {
-                    _context.Update(cart);
-                    await _context.SaveChangesAsync();
-                }
-                catch (DbUpdateConcurrencyException)
-                {
-                    if (!CartExists(cart.Id))
-                    {
-                        return NotFound();
-                    }
-                    else
-                    {
-                        throw;
-                    }
-                }
-                return RedirectToAction(nameof(Index));
+                Id = user.Id;
             }
-            ViewData["UserId"] = new SelectList(_context.ApplicationUsers, "Id", "Id", cart.UserId);
-            ViewData["ProductId"] = new SelectList(_context.products, "Id", "Id", cart.ProductId);
-            return View(cart);
+            var updatedCartItems = _context.carts.Include(c => c.Customer).Include(c => c.Product).Include(c => c.Product.Images).Where(c => c.UserId == Id);
+
+            return PartialView("_itemCartPartial", updatedCartItems);
         }
 
-        // GET: CustomerCarts/Delete/5
-        public async Task<IActionResult> Delete(long? id)
-        {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var cart = await _context.carts
-                .Include(c => c.Customer)
-                .Include(c => c.Product)
-                .FirstOrDefaultAsync(m => m.Id == id);
-            if (cart == null)
-            {
-                return NotFound();
-            }
-
-            return View(cart);
-        }
-
-        // POST: CustomerCarts/Delete/5
-        [HttpPost, ActionName("Delete")]
-        [ValidateAntiForgeryToken]
+        [HttpPost]
         public async Task<IActionResult> DeleteConfirmed(long id)
         {
+
             var cart = await _context.carts.FindAsync(id);
             if (cart != null)
             {
                 _context.carts.Remove(cart);
+                await _context.SaveChangesAsync();
             }
 
-            await _context.SaveChangesAsync();
-            return RedirectToAction(nameof(Index));
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null)
+            {
+                return BadRequest("Không tìm thấy người dùng");
+            }
+
+            var updatedCartItems = await _context.carts
+                .Include(c => c.Customer)
+                .Include(c => c.Product)
+                .Include(c => c.Product.Images)
+                .Where(c => c.UserId == user.Id)
+                .ToListAsync();
+            return PartialView("_itemCartPartial", updatedCartItems);
         }
+
 
         private bool CartExists(long id)
         {
