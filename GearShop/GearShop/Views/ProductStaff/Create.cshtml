@@ -14,17 +14,24 @@
                     <a asp-action="Index" class="btn btn-outline-primary">Quay lại danh sách</a>
                 </div>
 
-                <form asp-action="Create" class="row">
-                    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                @if (TempData["SuccessMessage"] != null)
+                {
+                    <div class="alert alert-success alert-dismissible fade show" role="alert">
+                        @TempData["SuccessMessage"]
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                }
+                <form asp-action="Create" class="row" enctype="multipart/form-data">
+                    <div asp-validation-summary="ModelOnly" class="alert alert-danger mb-3" role="alert"></div>
 
                     <div class="col-md-6 mb-3">
-                        <label asp-for="ProductName" class="form-label"></label>
+                        <label asp-for="ProductName" class="form-label">Tên sản phẩm <span class="required-asterisk">*</span></label>
                         <input asp-for="ProductName" class="form-control" />
                         <span asp-validation-for="ProductName" class="text-danger"></span>
                     </div>
 
                     <div class="col-md-6 mb-3">
-                        <label asp-for="BrandId" class="form-label">Thương hiệu</label>
+                        <label asp-for="BrandId" class="form-label">Thương hiệu <span class="required-asterisk">*</span></label>
                         <select asp-for="BrandId" class="form-select" asp-items="@ViewBag.BrandId">
                             <option value="">-- Chọn thương hiệu --</option>
                             @if (ViewBag.BrandId == null || !((SelectList)ViewBag.BrandId).Any())
@@ -36,7 +43,7 @@
                     </div>
 
                     <div class="col-md-6 mb-3">
-                        <label asp-for="ProductTypeId" class="form-label">Loại sản phẩm</label>
+                        <label asp-for="ProductTypeId" class="form-label">Loại sản phẩm <span class="required-asterisk">*</span></label>
                         <select asp-for="ProductTypeId" class="form-select" asp-items="@ViewBag.ProductTypeId">
                             <option value="">-- Chọn loại sản phẩm --</option>
                             @if (ViewBag.ProductTypeId == null || !((SelectList)ViewBag.ProductTypeId).Any())
@@ -48,35 +55,63 @@
                     </div>
 
                     <div class="col-md-6 mb-3">
-                        <label asp-for="Price" class="form-label"></label>
+                        <label asp-for="Price" class="form-label">Giá bán <span class="required-asterisk">*</span></label>
                         <div class="input-group">
-                            <span class="input-group-text">$</span>
-                            <input asp-for="Price" class="form-control" />
+                            <span class="input-group-text">đ</span>
+                            <input asp-for="Price" class="form-control" type="number" step="0.01" min="0.01" />
                         </div>
                         <span asp-validation-for="Price" class="text-danger"></span>
                     </div>
 
                     <div class="col-md-6 mb-3">
-                        <label asp-for="Quantity" class="form-label">Số lượng</label>
-                        <input asp-for="Quantity" class="form-control" />
+                        <label asp-for="Quantity" class="form-label">Số lượng <span class="required-asterisk">*</span></label>
+                        <input asp-for="Quantity" class="form-control" type="number" min="1" />
                         <span asp-validation-for="Quantity" class="text-danger"></span>
                     </div>
 
                     <div class="col-md-6 mb-3">
-                        <label asp-for="InServiceDate" class="form-label">Ngày mở bán</label>
+                        <label asp-for="InServiceDate" class="form-label">Ngày nhập hàng <span class="required-asterisk">*</span></label>
                         <input asp-for="InServiceDate" class="form-control" type="date" />
                         <span asp-validation-for="InServiceDate" class="text-danger"></span>
                     </div>
 
                     <div class="col-md-6 mb-3">
-                        <label asp-for="InStockDate" class="form-label">Ngày nhập hàng</label>
+                        <label asp-for="InStockDate" class="form-label">Ngày mở bán <span class="required-asterisk">*</span></label>
                         <input asp-for="InStockDate" class="form-control" type="date" />
                         <span asp-validation-for="InStockDate" class="text-danger"></span>
                     </div>
 
+                    <!-- Image Upload Section -->
                     <div class="col-12 mb-3">
-                        <label asp-for="Description" class="form-label">Miêu tả</label>
-                        <textarea asp-for="Description" class="form-control" rows="3"></textarea>
+                        <label class="form-label">Hình ảnh sản phẩm (tối đa 5 ảnh, ít nhất 1 ảnh) <span class="required-asterisk">*</span></label>
+                        <div class="row">
+                            @for (int i = 0; i < 5; i++)
+                            {
+                                <div class="col-md-4 mb-2">
+                                    <input type="file" name="imageFiles" class="form-control image-input" accept=".jpg,.jpeg,.png,.gif" />
+                                    <div class="image-preview mt-2" style="display: none;">
+                                        <img src="" alt="Image Preview" style="max-width: 100px; max-height: 100px;" />
+                                        <p class="file-name mt-1"></p>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                        <small class="text-muted">Ảnh đầu tiên sẽ được đặt làm ảnh đại diện. Chỉ chấp nhận .jpg, .jpeg, .png, .gif, tối đa 10MB mỗi ảnh.</small>
+                        <span class="text-danger" id="imageFilesValidation">
+                            @if (ViewData.ModelState.ContainsKey("imageFiles") && ViewData.ModelState["imageFiles"].Errors.Any())
+                            {
+                                foreach (var error in ViewData.ModelState["imageFiles"].Errors)
+                                {
+                                    <span>@error.ErrorMessage</span>
+                                    <br />
+                                }
+                            }
+                        </span>
+                    </div>
+
+                    <div class="col-12 mb-3">
+                        <label asp-for="Description" class="form-label">Miêu tả <span class="required-asterisk">*</span></label>
+                        <textarea asp-for="Description" class="form-control description-input" rows="3" required></textarea>
                         <span asp-validation-for="Description" class="text-danger"></span>
                     </div>
 
