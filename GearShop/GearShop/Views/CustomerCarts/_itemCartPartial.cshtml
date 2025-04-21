@@ -4,9 +4,9 @@
 	<tr>
 		<td><input type="checkbox" class="form-check-input" style="height:20px;width:20px" name="productId" value="@item.ProductId" /></td>
 		<td>
-			@if (item.Product.Images.Count() != 0)
+			@if (item.Product.Images.Count() != 0 )
 			{
-				<img class="img-fluid" src="@((item.Product.Images.Where(a=>a.Isthumbnail == 1)).Count() == 1 ? item.Product.Images.FirstOrDefault(a=>a.Isthumbnail == 1).ImageUrl:item.Product.Images.FirstOrDefault().ImageUrl)" alt="" style="width: 100%; height: 100%; object-fit: cover;">
+				<img class="img-fluid" src="@((item.Product.Images.Where(a=>a.Isthumbnail == 1)).Count() == 1 ? item.Product.Images.FirstOrDefault(a=>a.Isthumbnail == 1)?.ImageUrl:item.Product.Images.FirstOrDefault()?.ImageUrl)" alt="" style="width: 100%; height: 100%; object-fit: cover;">
 			}
 			else
 			{
