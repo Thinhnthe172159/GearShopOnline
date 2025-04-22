@@ -23,8 +23,8 @@
 			<div class="bg-light p-30 mb-5">
 				<div class="border-bottom pb-2">
 					<div class="d-flex justify-content-between mb-3">
-						<h6>Số tiền ước tính</h6>
-						<h6>$150</h6>
+						<h6>Ước tính</h6>
+						<h6 id="selectedTotal1"></h6>
 					</div>
 					<div class="d-flex justify-content-between">
 						<h6 class="font-weight-medium">Đã giảm</h6>
@@ -34,15 +34,40 @@
 				<div class="pt-2">
 					<div class="d-flex justify-content-between mt-2">
 						<h5>Tổng cộng</h5>
-						<h5>$160</h5>
+						<h5 id="selectedTotal">0đ</h5>
 					</div>
-					<button class="btn btn-block btn-primary font-weight-bold my-3 py-3">Proceed To Checkout</button>
+					<button class="btn btn-block btn-primary font-weight-bold my-3 py-3">Thanh toán</button>
 				</div>
 			</div>
+			<form method="post" asp-action="CreatePayment" asp-controller="payment">
+				<input type="text" name="orderId" placeholder="Mã đơn hàng" required />
+				<input type="number" name="amount" placeholder="Số tiền" required />
+				<button type="submit">Thanh toán qua VNPAY</button>
+			</form>
+
 		</div>
 	</div>
 </div>
 <!-- Cart End -->
+<script>
+		function calculateSelectedTotal() {
+		let total = 0;
+		$('tbody input[name="productId"]:checked').each(function () {
+			const row = $(this).closest('tr');
+			const quantity = parseInt(row.find('.quantity-input').val());
+			const priceText = row.find('td:nth-child(5)').text().replace(/[^\d]/g, '');
+			const price = parseInt(priceText);
+
+			if (!isNaN(price) && !isNaN(quantity)) {
+				total += price;
+			}
+		});
+
+		$('#selectedTotal').text(total.toLocaleString('vi-VN') + '₫');
+		$('#selectedTotal1').text(total.toLocaleString('vi-VN') + '₫');
+	}
+
+</script>
 
 
 

@@ -63,7 +63,7 @@ namespace GearShop.Controllers
         public async Task<IActionResult> AddToCart(string userId, long productId, int quantity = 1)
         {
             var cart = new Cart { UserId = userId, ProductId = productId, Quantity = quantity };
-            var productIncart = _context.carts.FirstOrDefault(p => p.ProductId == productId);
+            var productIncart = _context.carts.FirstOrDefault(p => p.ProductId == productId && p.UserId == userId);
             if (productIncart == null)
             {
                 try
@@ -89,25 +89,24 @@ namespace GearShop.Controllers
         public async Task<IActionResult> Edit(long id, int quantity)
         {
 
-            var itemCart = _context.carts.Find(id);
-            if (itemCart != null)
+            var itemCart = await _context.carts.Include(a => a.Product).FirstOrDefaultAsync(a => a.Id == id);
+            if (itemCart != null && itemCart.Product.Quantity >= quantity)
             {
-              
-                    try
-                    {
-                        itemCart.Quantity = quantity;
-                        _context.carts.Update(itemCart);
-                        await _context.SaveChangesAsync();
-                    }
-                    catch (Exception)
-                    {
 
-                    }
-                
-                //else
-                //{
-                //    ViewData["Noti"] = "Số lượng vượt quá giới hạn!";
-                //}
+                try
+                {
+                    itemCart.Quantity = quantity;
+                    _context.carts.Update(itemCart);
+                    await _context.SaveChangesAsync();
+                }
+                catch (Exception)
+                {
+
+                }
+            }
+            else
+            {
+                TempData["Noti"] = "Số lượng vượt quá giới hạn!";
             }
 
             var user = await _userManager.GetUserAsync(User);
