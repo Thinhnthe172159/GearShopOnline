@@ -21,35 +21,28 @@
                         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                     </div>
                 }
+
                 <form asp-action="Create" class="row" enctype="multipart/form-data">
-                    <div asp-validation-summary="ModelOnly" class="alert alert-danger mb-3" role="alert"></div>
+                    <div asp-validation-summary="ModelOnly" class="alert alert-danger mb-3" role="alert" id="validationSummary"></div>
 
                     <div class="col-md-6 mb-3">
                         <label asp-for="ProductName" class="form-label">Tên sản phẩm <span class="required-asterisk">*</span></label>
-                        <input asp-for="ProductName" class="form-control" />
+                        <input asp-for="ProductName" class="form-control" required />
                         <span asp-validation-for="ProductName" class="text-danger"></span>
                     </div>
 
                     <div class="col-md-6 mb-3">
                         <label asp-for="BrandId" class="form-label">Thương hiệu <span class="required-asterisk">*</span></label>
-                        <select asp-for="BrandId" class="form-select" asp-items="@ViewBag.BrandId">
-                            <option value="">-- Chọn thương hiệu --</option>
-                            @if (ViewBag.BrandId == null || !((SelectList)ViewBag.BrandId).Any())
-                            {
-                                <option value="" disabled>Không có thương hiệu nào</option>
-                            }
+                        <select asp-for="BrandId" class="form-select" asp-items="@ViewData["BrandId"] as SelectList" required>
+                            <option value="" disabled selected>-- Chọn thương hiệu --</option>
                         </select>
                         <span asp-validation-for="BrandId" class="text-danger"></span>
                     </div>
 
                     <div class="col-md-6 mb-3">
                         <label asp-for="ProductTypeId" class="form-label">Loại sản phẩm <span class="required-asterisk">*</span></label>
-                        <select asp-for="ProductTypeId" class="form-select" asp-items="@ViewBag.ProductTypeId">
-                            <option value="">-- Chọn loại sản phẩm --</option>
-                            @if (ViewBag.ProductTypeId == null || !((SelectList)ViewBag.ProductTypeId).Any())
-                            {
-                                <option value="" disabled>Không có loại sản phẩm nào</option>
-                            }
+                        <select asp-for="ProductTypeId" class="form-select" asp-items="@ViewData["ProductTypeId"] as SelectList" required>
+                            <option value="" disabled selected>-- Chọn loại sản phẩm --</option>
                         </select>
                         <span asp-validation-for="ProductTypeId" class="text-danger"></span>
                     </div>
@@ -58,32 +51,32 @@
                         <label asp-for="Price" class="form-label">Giá bán <span class="required-asterisk">*</span></label>
                         <div class="input-group">
                             <span class="input-group-text">đ</span>
-                            <input asp-for="Price" class="form-control" type="number" step="0.01" min="0.01" />
+                            <input asp-for="Price" class="form-control" type="number" step="0.01" min="0.01" required />
                         </div>
                         <span asp-validation-for="Price" class="text-danger"></span>
                     </div>
 
                     <div class="col-md-6 mb-3">
                         <label asp-for="Quantity" class="form-label">Số lượng <span class="required-asterisk">*</span></label>
-                        <input asp-for="Quantity" class="form-control" type="number" min="1" />
+                        <input asp-for="Quantity" class="form-control" type="number" min="1" required />
                         <span asp-validation-for="Quantity" class="text-danger"></span>
                     </div>
 
                     <div class="col-md-6 mb-3">
                         <label asp-for="InServiceDate" class="form-label">Ngày nhập hàng <span class="required-asterisk">*</span></label>
-                        <input asp-for="InServiceDate" class="form-control" type="date" />
+                        <input asp-for="InServiceDate" class="form-control" type="date" required />
                         <span asp-validation-for="InServiceDate" class="text-danger"></span>
                     </div>
 
                     <div class="col-md-6 mb-3">
                         <label asp-for="InStockDate" class="form-label">Ngày mở bán <span class="required-asterisk">*</span></label>
-                        <input asp-for="InStockDate" class="form-control" type="date" />
+                        <input asp-for="InStockDate" class="form-control" type="date" required />
                         <span asp-validation-for="InStockDate" class="text-danger"></span>
                     </div>
 
-                    <!-- Image Upload Section -->
+                    <!-- New Image Upload Section -->
                     <div class="col-12 mb-3">
-                        <label class="form-label">Hình ảnh sản phẩm (tối đa 5 ảnh, ít nhất 1 ảnh) <span class="required-asterisk">*</span></label>
+                        <label class="form-label">Hình ảnh sản phẩm (tối đa 5 ảnh, không bắt buộc)</label>
                         <div class="row">
                             @for (int i = 0; i < 5; i++)
                             {
@@ -96,7 +89,7 @@
                                 </div>
                             }
                         </div>
-                        <small class="text-muted">Ảnh đầu tiên sẽ được đặt làm ảnh đại diện. Chỉ chấp nhận .jpg, .jpeg, .png, .gif, tối đa 10MB mỗi ảnh.</small>
+                        <small class="text-muted">Ảnh đầu tiên được thêm sẽ là ảnh đại diện. Chỉ chấp nhận .jpg, .jpeg, .png, .gif, tối đa 10MB mỗi ảnh.</small>
                         <span class="text-danger" id="imageFilesValidation">
                             @if (ViewData.ModelState.ContainsKey("imageFiles") && ViewData.ModelState["imageFiles"].Errors.Any())
                             {
@@ -115,16 +108,14 @@
                         <span asp-validation-for="Description" class="text-danger"></span>
                     </div>
 
-                    <!-- Các trường ẩn hoặc tự động điền -->
+                    <!-- Hidden fields -->
                     <input type="hidden" asp-for="CreatedDate" value="@DateTime.Now" />
                     <input type="hidden" asp-for="CreatedBy" value="@User.Identity?.Name" />
-                    <input type="hidden" asp-for="ModifiedDate" value="@DateTime.Now" />
-                    <input type="hidden" asp-for="ModifiedBy" value="@User.Identity?.Name" />
                     <input type="hidden" asp-for="Status" value="1" />
 
                     <div class="col-12">
                         <button type="submit" class="btn btn-primary">
-                            <i class="fa fa-plus-square me-2"></i>Tạo mới
+                            <i class="fa fa-plus me-2"></i>Tạo mới
                         </button>
                     </div>
                 </form>
@@ -134,7 +125,52 @@
 </div>
 
 @section Scripts {
-    @{
-        await Html.RenderPartialAsync("_ValidationScriptsPartial");
-    }
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        document.querySelectorAll('.image-input').forEach(input => {
+            input.addEventListener('change', function (e) {
+                const file = this.files[0];
+                const previewContainer = this.nextElementSibling;
+                const previewImage = previewContainer.querySelector('img');
+                const fileName = previewContainer.querySelector('.file-name');
+
+                if (file) {
+                    const allowedExtensions = ['image/jpeg', 'image/png', 'image/gif'];
+                    const maxSize = 10 * 1024 * 1024; // 10MB
+
+                    if (!allowedExtensions.includes(file.type)) {
+                        alert('Chỉ chấp nhận các định dạng: .jpg, .jpeg, .png, .gif.');
+                        this.value = '';
+                        return;
+                    }
+
+                    if (file.size > maxSize) {
+                        alert('Kích thước tệp vượt quá 10MB.');
+                        this.value = '';
+                        return;
+                    }
+
+                    const reader = new FileReader();
+                    reader.onload = function (e) {
+                        previewImage.src = e.target.result;
+                        previewContainer.style.display = 'block';
+                    };
+                    reader.readAsDataURL(file);
+                    fileName.textContent = file.name;
+                } else {
+                    previewContainer.style.display = 'none';
+                    previewImage.src = '';
+                    fileName.textContent = '';
+                }
+            });
+        });
+
+        document.querySelector('form').addEventListener('submit', function (e) {
+            console.log('Form submitted');
+            const formData = new FormData(this);
+            for (let [key, value] of formData.entries()) {
+                console.log(`${key}: ${value}`);
+            }
+        });
+    </script>
 }

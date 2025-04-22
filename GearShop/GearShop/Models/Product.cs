@@ -14,8 +14,8 @@ namespace GearShop.Models
         public long Id { get; set; }
         [StringLength(350)]
         public string ProductName { get; set; } = null!;
-        public int BrandId { get; set; }
-        public int ProductTypeId { get; set; }
+        public int? BrandId { get; set; }
+        public int? ProductTypeId { get; set; }
         public string? Description { get; set; }
         public int Quantity { get; set; }
         public decimal Price { get; set; }
