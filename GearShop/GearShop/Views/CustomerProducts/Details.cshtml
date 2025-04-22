@@ -1,6 +1,7 @@
 ﻿@using Microsoft.AspNetCore.Identity
 @model GearShop.Models.Product
 @inject UserManager<IdentityUser> UserManager
+@inject SignInManager<IdentityUser> SignInManager
 @inject GearShop.Data.ApplicationDbContext _context
 
 @{
@@ -24,9 +25,9 @@
 								{
 									<div class="carousel-item @(i == 0 ? "active" : "")" style="height: 100%;">
 										<img src="@listImg[i].ImageUrl"
-											 class="w-100 h-100"
-											 style="object-fit: cover; height: 100%; width: 100%;"
-											 alt="Image" />
+										class="w-100 h-100"
+										style="object-fit: cover; height: 100%; width: 100%;"
+										alt="Image" />
 									</div>
 								}
 							</div>
@@ -71,14 +72,21 @@
 				</div>
 				<form id="add-to-cart-form" method="post" class="d-flex align-items-center mb-4 pt-2">
 					<div class="input-group quantity" style="width: 150px;">
-					
+
 						<input id="UserId-Cart" type="text" hidden name="userId" value="@(user!=null?user.Id:"")" />
 						<input id="ProductId-Cart" type="number" hidden name="productId" value="@Model.Id" />
 						<input hidden id="Quantity-Cart" type="number"  name="quantity" value="1">
-						<button id="button-addTOCart" type="submit" class="btn btn-primary">
-							<i class="fa fa-shopping-cart mr-1"></i> Add To
-							Cart
-						</button>
+						@if (SignInManager.IsSignedIn(User)){
+							<button id="button-addTOCart" type="submit" class="btn btn-primary">
+								<i class="fa fa-shopping-cart mr-1"></i> Add To
+								Cart
+							</button>
+						}else{
+							<a id="button-addTOCart" id="login" asp-area="Identity" asp-page="/Account/Login" class="btn btn-primary">
+								<i class="fa fa-shopping-cart mr-1"></i> Add To
+								Cart
+							</a>
+						}
 					</div>
 				</form>
 				<div class="d-flex pt-2">

@@ -11,8 +11,12 @@ namespace GearShop.Models
         public long ProductId { get; set; }
         public int Quantity { get; set; }
         public string CustomerId { get; set; } = null!;
-        public double SoldPrice { get; set; }
+        public decimal SoldPrice { get; set; }
+        [MaxLength(100)]
+        public string? OrderCode { get; set; }
+        public int Status { get; set; } = 1;// khởi tạo order
         public DateTime CreateDate { get; set; } = DateTime.Now;
+        public DateTime? ReviceDate {  get; set; }
         [ForeignKey(nameof(ProductId))]
         public virtual Product Product { get; set; } = null!;
         [ForeignKey(nameof(CustomerId))]

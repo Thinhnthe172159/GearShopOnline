@@ -16,7 +16,7 @@
         @foreach (var item in Model)
         {
             <tr data-id="@item.Id">
-                <td style="width:20px"><input type="checkbox" class="form-check-input" style="height:40px;width:40px" name="productId" value="@item.ProductId" /></td>
+                <td style="width:20px"><input type="checkbox" class="form-check-input" style="height:40px;width:40px" name="productId" value="@item.Id" /></td>
                 <td>
                     @if (item.Product.Images.Count() != 0)
                     {
@@ -65,6 +65,7 @@
                     calculateSelectedTotal();
                 }
             });
+            updateHiddenInputs();
             localStorage.setItem('checkedProductIds', JSON.stringify(checkedProductIds));
         }
 
@@ -77,6 +78,7 @@
                     calculateSelectedTotal();
                 }
             });
+             updateHiddenInputs();
         }
 
         restoreCheckboxStates();
@@ -143,4 +145,12 @@
             });
         });
     });
+
+        function updateHiddenInputs() {
+        $('#selectedCartInputs').empty();
+        $('input[name="productId"]:checked').each(function () {
+            var id = $(this).val();
+            $('#selectedCartInputs').append(`<input type="hidden" name="itemCarts" value="${id}" />`);
+        });
+    }
 </script>

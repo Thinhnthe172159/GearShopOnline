@@ -4,80 +4,109 @@
 @{
     ViewData["Title"] = "Log in";
 }
+<link href="~/css/login.css" rel="stylesheet" />
 
-<h1>@ViewData["Title"]</h1>
-<div class="row">
-    <div class="col-md-4">
-        <section>
-            <form id="account" method="post">
-                <h2>Use a local account to log in.</h2>
-                <hr />
-                <div asp-validation-summary="ModelOnly" class="text-danger" role="alert"></div>
-                <div class="form-floating mb-3">
-                    <input asp-for="Input.Email" class="form-control" autocomplete="username" aria-required="true" placeholder="name@example.com" />
-                    <label asp-for="Input.Email" class="form-label">Email</label>
-                    <span asp-validation-for="Input.Email" class="text-danger"></span>
-                </div>
-                <div class="form-floating mb-3">
-                    <input asp-for="Input.Password" class="form-control" autocomplete="current-password" aria-required="true" placeholder="password" />
-                    <label asp-for="Input.Password" class="form-label">Password</label>
-                    <span asp-validation-for="Input.Password" class="text-danger"></span>
-                </div>
-                <div class="checkbox mb-3">
-                    <label asp-for="Input.RememberMe" class="form-label">
-                        <input class="form-check-input" asp-for="Input.RememberMe" />
-                        @Html.DisplayNameFor(m => m.Input.RememberMe)
-                    </label>
-                </div>
-                <div>
-                    <button id="login-submit" type="submit" class="w-100 btn btn-lg btn-primary">Log in</button>
-                </div>
-                <div>
-                    <p>
-                        <a id="forgot-password" asp-page="./ForgotPassword">Quên mật khẩu?</a>
-                    </p>
-                    <p>
-                        <a asp-page="./Register" asp-route-returnUrl="@Model.ReturnUrl">Tạo tài khoản</a>
-                    </p>
-                    <p>
-                        <a id="resend-confirmation" asp-page="./ResendEmailConfirmation">Resend email confirmation</a>
-                    </p>
-                </div>
-            </form>
-        </section>
-    </div>
-    <div class="col-md-6 col-md-offset-2">
-        <section>
-            <h3>Use another service to log in.</h3>
-            <hr />
-            @{
-                if ((Model.ExternalLogins?.Count ?? 0) == 0)
-                {
-                    <div>
-                        <p>
-                            There are no external authentication services configured. See this <a href="https://go.microsoft.com/fwlink/?LinkID=532715">article
-                            about setting up this ASP.NET application to support logging in via external services</a>.
-                        </p>
-                    </div>
-                }
-                else
-                {
-                    <form id="external-account" asp-page="./ExternalLogin" asp-route-returnUrl="@Model.ReturnUrl" method="post" class="form-horizontal">
-                        <div>
-                            <p>
-                                @foreach (var provider in Model.ExternalLogins!)
-                                {
-                                    <button type="submit" class="btn btn-primary" name="provider" value="@provider.Name" title="Log in using your @provider.DisplayName account">@provider.DisplayName</button>
-                                }
-                            </p>
-                        </div>
-                    </form>
-                }
-            }
-        </section>
-    </div>
-</div>
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
-}
+}z
+<!-- Section: Design Block -->
+<body style="background: rgb(2,0,36);
+        background: linear-gradient(332deg, rgba(2,0,36,1) 37%, rgba(29,29,62,1) 52%, rgba(102,0,255,1) 99%);">
+
+    <div class="container px-4 py-5 px-md-5 text-center text-lg-start my-5">
+        <div class="row gx-lg-5 align-items-center mb-5">
+            <div class="col-lg-6 mb-5 mb-lg-0" style="z-index: 10">
+                <h1 class="my-5 display-5 fw-bold ls-tight" style="color: hsl(218, 81%, 95%)">
+                    Gear Shop <br />
+                    <span style="color: hsl(218, 81%, 75%)">Create work space</span><br />
+                    <span class="clock-hour" id="hours" style="color: hsl(218, 81%, 75%)">
+                    </span> <span class="clock-minute" id="minutes" style="color: hsl(218, 81%, 75%)">
+                    </span> <span class="clock-second" id="seconds" style="color: blanchedalmond">
+                    </span> <span class="am-pm-txt" id="AMPM" style="color: blanchedalmond">
+                    </span>
+                </h1>
+            </div>
+
+            <div class="col-lg-6 mb-5 mb-lg-0 position-relative">
+                <a id="radius-shape-3" href="https://www.facebook.com/share/15gaVFa1NY/?mibextid=wwXIfr" class="position-absolute shadow-5-strong"></a>
+                <div id="radius-shape-1" class="position-absolute rounded-circle shadow-5-strong"></div>
+                <div id="radius-shape-2" class="position-absolute shadow-5-strong"></div>
+
+
+                <div class="card bg-glass">
+                    <div class="card-body px-4 py-5 px-md-5">
+                        <form id="account" method="post">
+                            <h2 class="text-light">Gear Shop</h2>
+                            <h3>  <div asp-validation-summary="ModelOnly" class="text-danger" role="alert"></div></h3>
+                            <hr />  
+                            <div class="mb-3">
+                                <input asp-for="Input.Email" class="form-control" autocomplete="username" aria-required="true" placeholder="Email: Example@gmail.com" />
+                            </div>
+                            <div class=" mb-3">
+                                <input asp-for="Input.Password" class="form-control" autocomplete="current-password" aria-required="true" placeholder="Mật khẩu" />
+                                
+                            </div>
+                            <div class="checkbox col-md-12 row">
+                                <label asp-for="Input.RememberMe" class="form-label text-light col-md-6">
+                                    <input class="form-check-input" asp-for="Input.RememberMe" />
+                                    @Html.DisplayNameFor(m => m.Input.RememberMe)
+                                </label>
+                                <div class="col-md-6 text-end">
+                                    <a asp-action="ForgetPassword" asp-controller="User" class="text-light">Quên mật khẩu ?</a>
+                                </div>
+                            </div>
+                            <div>
+                                <button id="login-submit" type="submit" class="w-100 btn btn-lg btn-primary">Log in</button>
+                            </div>
+                            <br />
+                            <div>
+                                <a asp-page="./Register" asp-route-returnUrl="@Model.ReturnUrl">Bạn chưa có tài khoản</a>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+<script>
+    let hours = document.getElementById("hours");
+    let minutes = document.getElementById("minutes");
+    let seconds = document.getElementById("seconds");
+    let AMPM = document.getElementById("AMPM");
+
+    setInterval(() => {
+        let clock = new Date();
+        let hrs = clock.getHours();
+        let min = clock.getMinutes();
+        let sec = clock.getSeconds();
+        let hh = hrs;
+
+        if (hrs > 12) {
+            hrs = hrs - 12;
+        }
+        if (hrs < 10) {
+            hrs = "0" + hrs;
+        }
+        if (min < 10) {
+            min = "0" + min;
+        }
+        if (sec < 10) {
+            sec = "0" + sec;
+        }
+        if (hrs == 0) {
+            hrs = 12;
+        }
+        if (hh < 12) {
+            AMPM.innerHTML = "AM";
+        } else {
+            AMPM.innerHTML = "PM";
+        }
+        hours.innerHTML = hrs;
+        minutes.innerHTML = min;
+        seconds.innerHTML = sec;
+
+    })
+</script>
+<!-- Section: Design Block -->

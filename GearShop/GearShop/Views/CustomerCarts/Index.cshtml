@@ -11,24 +11,27 @@
 			<partial name="_itemCartPartial" model="Model" />
 		</div>
 		<div class="col-lg-3">
-			<form class="mb-30" action="">
+			<form class="mb-30" asp-action="ApplyCoupon" asp-controller="CustomerCarts" method="post">
 				<div class="input-group">
-					<input type="text" class="form-control border-0 p-4" placeholder="Tính năng chưa phát triển">
+					<input required name="code" type="text" class="form-control border-0 p-4" placeholder="Mã giảm giá">
 					<div class="input-group-append">
-						<button class="btn btn-primary">Apply Coupon</button>
+						<button type="submit" class="btn btn-primary">Áp dụng</button>
 					</div>
 				</div>
 			</form>
-			<h5 class="section-title position-relative text-uppercase mb-3"><span class="bg-secondary pr-3">Tổng Số tiền</span></h5>
-			<div class="bg-light p-30 mb-5">
+			<h5 class="section-title position-relative text-uppercase mb-3"><span class="bg-secondary pr-3">Thanh toán</span></h5>
+			<!-- Payment method -->
+			<form method="post" asp-action="CreatePayment" asp-controller="payment" class="bg-light p-30 mb-5">
+				<div id="selectedCartInputs"></div>
+				<input name="code" type="text" hidden value="@ViewBag.Code" />
 				<div class="border-bottom pb-2">
 					<div class="d-flex justify-content-between mb-3">
 						<h6>Ước tính</h6>
-						<h6 id="selectedTotal1"></h6>
+						<h6 id="selectedTotal1">0đ</h6>
 					</div>
 					<div class="d-flex justify-content-between">
 						<h6 class="font-weight-medium">Đã giảm</h6>
-						<h6 class="font-weight-medium">0%</h6>
+						<h6 class="font-weight-medium">@(ViewBag.coupon != 0 ? $"{ViewBag.coupon}%" : "không áp dụng")</h6>
 					</div>
 				</div>
 				<div class="pt-2">
@@ -36,13 +39,8 @@
 						<h5>Tổng cộng</h5>
 						<h5 id="selectedTotal">0đ</h5>
 					</div>
-					<button class="btn btn-block btn-primary font-weight-bold my-3 py-3">Thanh toán</button>
+					<button type="submit" class="btn btn-block btn-primary font-weight-bold my-3 py-3">Thanh toán qua VNPAY</button>
 				</div>
-			</div>
-			<form method="post" asp-action="CreatePayment" asp-controller="payment">
-				<input type="text" name="orderId" placeholder="Mã đơn hàng" required />
-				<input type="number" name="amount" placeholder="Số tiền" required />
-				<button type="submit">Thanh toán qua VNPAY</button>
 			</form>
 
 		</div>
@@ -50,22 +48,26 @@
 </div>
 <!-- Cart End -->
 <script>
-		function calculateSelectedTotal() {
+			function calculateSelectedTotal() {
 		let total = 0;
+		let discount = @(ViewBag.coupon != null ? ViewBag.coupon : 0);
+
 		$('tbody input[name="productId"]:checked').each(function () {
 			const row = $(this).closest('tr');
 			const quantity = parseInt(row.find('.quantity-input').val());
 			const priceText = row.find('td:nth-child(5)').text().replace(/[^\d]/g, '');
 			const price = parseInt(priceText);
-
 			if (!isNaN(price) && !isNaN(quantity)) {
-				total += price;
+				total += price * quantity;
 			}
 		});
 
-		$('#selectedTotal').text(total.toLocaleString('vi-VN') + '₫');
+		const totalAfterDiscount = total - (total * discount / 100);
+
+		$('#selectedTotal').text(totalAfterDiscount.toLocaleString('vi-VN') + '₫');
 		$('#selectedTotal1').text(total.toLocaleString('vi-VN') + '₫');
 	}
+
 
 </script>
 
