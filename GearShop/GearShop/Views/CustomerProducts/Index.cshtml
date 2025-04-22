@@ -161,7 +161,7 @@
 							<div class="product-img position-relative overflow-hidden" style="width: 100%; height: 250px; display: flex; align-items: center; justify-content: center; overflow: hidden;">
 								@if (item.Images.Count()!=0)
 								{
-									<img class="img-fluid" src="@((item.Images.Where(a=>a.Isthumbnail == 1)).Count() == 1 ? item.Images.FirstOrDefault(a=>a.Isthumbnail == 1).ImageUrl:item.Images.FirstOrDefault().ImageUrl)" alt="" style="width: 100%; height: 100%; object-fit: cover;">
+									<img class="img-fluid" src="@((item.Images.Where(a=>a.Isthumbnail == 1)).Count() == 1 ? item.Images.FirstOrDefault(a=>a.Isthumbnail == 1)?.ImageUrl:item.Images.FirstOrDefault()?.ImageUrl)" alt="" style="width: 100%; height: 100%; object-fit: cover;">
 								}else{
 									<img class="img-fluid" src="~/sourceimg/NoImage.jpg" alt="" style="width: 100%; height: 100%; object-fit: cover;">
 								}

@@ -69,26 +69,17 @@
 				<div class="d-flex">
 					<strong class="text-dark mr-3">Số lượng còn:</strong><p class="border border-1 text-success">@Model.Quantity</p>
 				</div>
-				<form asp-controller="CustomerCarts" asp-action="create" class="d-flex align-items-center mb-4 pt-2">
-					<div class="input-group quantity mr-3" style="width: 130px;">
-						<div class="input-group-btn">
-							<button class="btn btn-primary btn-minus">
-								<i class="fa fa-minus"></i>
-							</button>
-						</div>
-						<input type="text" hidden name="userId" value="@(user!=null?user.Id:"")" />
-						<input type="number" hidden name="productId" value="@Model.Id" />
-						<input type="number" class="form-control bg-secondary border-0 text-center" name="quantity" value="1">
-						<div class="input-group-btn">
-							<button class="btn btn-primary btn-plus">
-								<i class="fa fa-plus"></i>
-							</button>
-						</div>
+				<form id="add-to-cart-form" method="post" class="d-flex align-items-center mb-4 pt-2">
+					<div class="input-group quantity" style="width: 150px;">
+					
+						<input id="UserId-Cart" type="text" hidden name="userId" value="@(user!=null?user.Id:"")" />
+						<input id="ProductId-Cart" type="number" hidden name="productId" value="@Model.Id" />
+						<input hidden id="Quantity-Cart" type="number"  name="quantity" value="1">
+						<button id="button-addTOCart" type="submit" class="btn btn-primary">
+							<i class="fa fa-shopping-cart mr-1"></i> Add To
+							Cart
+						</button>
 					</div>
-					<button class="btn btn-primary px-3">
-						<i class="fa fa-shopping-cart mr-1"></i> Add To
-						Cart
-					</button>
 				</form>
 				<div class="d-flex pt-2">
 					<strong class="text-dark mr-2">Share on:</strong>
@@ -354,3 +345,30 @@
 	</div>
 </div>
 <!-- Products End -->
+<script src="~/lib/jquery/dist/jquery.min.js"></script>
+
+<script>
+		$(document).ready(function () {
+		$('#add-to-cart-form').submit(function (e) {
+			e.preventDefault();
+
+			var formData = $(this).serialize();
+
+				$.ajax({
+		type: 'POST',
+		url: '@Url.Action("AddToCart", "CustomerCarts")',
+		data: formData,
+		success: function (data) {
+			$('#userCart').html(data);
+		},
+		error: function (xhr, status, error) {
+			console.error('Lỗi khi thêm vào giỏ hàng:', error);
+		}
+	});
+
+
+			return false;
+		});
+	});
+
+</script>

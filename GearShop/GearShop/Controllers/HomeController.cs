@@ -22,18 +22,24 @@ namespace GearShop.Controllers
 
         public async Task<IActionResult> Index()
         {
-            if (User.Identity.IsAuthenticated)
+            if (User.Identity != null)
             {
-                var user = await _userManager.GetUserAsync(User);
-                var roles = await _userManager.GetRolesAsync(user);
+                if (User.Identity.IsAuthenticated)
+                {
+                    var user = await _userManager.GetUserAsync(User);
+                    if (user != null)
+                    {
+                        var roles = await _userManager.GetRolesAsync(user);
 
-                if (roles.Contains("Admin"))
-                {
-                    return RedirectToAction("Index", "HomeAdmin");
-                }
-                else if (roles.Contains("Staff"))
-                {
-                    return RedirectToAction("Index", "HomeStaff");
+                        if (roles.Contains("Admin"))
+                        {
+                            return RedirectToAction("Index", "HomeAdmin");
+                        }
+                        else if (roles.Contains("Staff"))
+                        {
+                            return RedirectToAction("Index", "HomeStaff");
+                        }
+                    }
                 }
             }
 
