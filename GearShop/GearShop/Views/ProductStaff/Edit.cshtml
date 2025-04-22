@@ -34,7 +34,7 @@
 
                     <div class="col-md-6 mb-3">
                         <label asp-for="BrandId" class="form-label">Thương hiệu <span class="text-danger">*</span></label>
-                        <select asp-for="BrandId" class="form-select" asp-items="@ViewData["BrandId"] as SelectList">
+                        <select asp-for="BrandId" class="form-select" asp-items="@(ViewData["BrandId"] as SelectList)" required>
                             <option value="">-- Chọn thương hiệu --</option>
                         </select>
                         <span asp-validation-for="BrandId" class="text-danger"></span>
@@ -42,7 +42,7 @@
 
                     <div class="col-md-6 mb-3">
                         <label asp-for="ProductTypeId" class="form-label">Loại sản phẩm <span class="text-danger">*</span></label>
-                        <select asp-for="ProductTypeId" class="form-select" asp-items="@ViewData["ProductTypeId"] as SelectList">
+                        <select asp-for="ProductTypeId" class="form-select" asp-items="@(ViewData["ProductTypeId"] as SelectList)" required>
                             <option value="">-- Chọn loại sản phẩm --</option>
                         </select>
                         <span asp-validation-for="ProductTypeId" class="text-danger"></span>
@@ -73,6 +73,18 @@
                         <label asp-for="InStockDate" class="form-label">Ngày mở bán <span class="text-danger">*</span></label>
                         <input asp-for="InStockDate" class="form-control" type="date" />
                         <span asp-validation-for="InStockDate" class="text-danger"></span>
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label asp-for="Status" class="form-label">Trạng thái <span class="text-danger">*</span></label>
+                        <select asp-for="Status" class="form-select" asp-items="@(new SelectList(new[]
+                        {
+                            new { Value = 1, Text = "Đang bán" },
+                            new { Value = 0, Text = "Ngừng bán" }
+                        }, "Value", "Text"))" required>
+                            <option value="">-- Chọn trạng thái --</option>
+                        </select>
+                        <span asp-validation-for="Status" class="text-danger"></span>
                     </div>
 
                     <!-- Existing Images Section -->
