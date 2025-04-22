@@ -19,5 +19,6 @@ namespace GearShop.Data
         public virtual DbSet<Comment> comments { get; set; }
         public virtual DbSet<ProductImage> productImages { get; set; }
         public virtual DbSet<ProductType> productTypes { get; set; }
+        public virtual DbSet<Coupon> coupons { get; set; }
     }
 }

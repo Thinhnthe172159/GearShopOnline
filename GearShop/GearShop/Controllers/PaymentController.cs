@@ -1,5 +1,8 @@
 ﻿using GearShop.Data;
+using GearShop.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 public class PaymentController : Controller
 {
@@ -18,33 +21,106 @@ public class PaymentController : Controller
     }
 
     [HttpPost]
-    public IActionResult CreatePayment(string userId,List<int> itemCarts,string orderId, decimal amount)
+    [Authorize(Roles = "Customer")]
+    public async Task<IActionResult> CreatePayment(string userId, List<long> itemCarts, string? code)
     {
-        string vnp_TmnCode = _config["VnPay:TmnCode"];
-        string vnp_HashSecret = _config["VnPay:HashSecret"];
-        string vnp_Url = _config["VnPay:Url"];
-        string vnp_ReturnUrl = _config["VnPay:ReturnUrl"];
+        if (itemCarts == null || !itemCarts.Any())
+        {
+            return BadRequest("Không có sản phẩm trong giỏ hàng.");
+        }
+
+        decimal amount = 0;
+        string orderCode = Guid.NewGuid().ToString();
+        decimal discount = 0;
+
+        // Kiểm tra mã giảm giá
+        if (!string.IsNullOrEmpty(code))
+        {
+            var coupon = _context.coupons.FirstOrDefault(c =>
+                c.Code == code &&
+                c.status == 1 &&
+                c.DateCreate < DateTime.Now &&
+                DateTime.Now < c.DateEnd);
+
+            if (coupon != null)
+            {
+                discount = coupon.discout;
+            }
+        }
+
+        foreach (var item in itemCarts)
+        {
+            var itemCart = _context.carts
+                .Include(c => c.Product)
+                .FirstOrDefault(a => a.Id == item);
+
+            if (itemCart != null)
+            {
+                var order = new Order
+                {
+                    ProductId = itemCart.ProductId,
+                    Quantity = itemCart.Quantity,
+                    CustomerId = itemCart.UserId,
+                    OrderCode = orderCode,
+                    SoldPrice = (itemCart.Product.Price * itemCart.Quantity)
+                                - ((discount / 100) * (itemCart.Product.Price * itemCart.Quantity))
+                };
+
+                amount += order.SoldPrice;
+                _context.orders.Add(order);
+                _context.carts.Remove(itemCart);
+            }
+        }
+
+        await _context.SaveChangesAsync();
+
+        string? vnp_TmnCode = _config["VnPay:TmnCode"];
+        string? vnp_HashSecret = _config["VnPay:HashSecret"];
+        string? vnp_Url = _config["VnPay:Url"];
+        string? vnp_ReturnUrl = _config["VnPay:ReturnUrl"];
 
         var pay = new VnPayLibrary();
         pay.AddRequestData("vnp_Version", "2.1.0");
         pay.AddRequestData("vnp_Command", "pay");
-        pay.AddRequestData("vnp_TmnCode", vnp_TmnCode);
+        pay.AddRequestData("vnp_TmnCode", vnp_TmnCode ?? "");
         pay.AddRequestData("vnp_Amount", ((int)(amount * 100)).ToString());
         pay.AddRequestData("vnp_CreateDate", DateTime.Now.ToString("yyyyMMddHHmmss"));
         pay.AddRequestData("vnp_CurrCode", "VND");
-        pay.AddRequestData("vnp_IpAddr", HttpContext.Connection.RemoteIpAddress?.ToString());
+        pay.AddRequestData("vnp_IpAddr", HttpContext.Connection.RemoteIpAddress?.ToString() ?? "127.0.0.1");
         pay.AddRequestData("vnp_Locale", "vn");
-        pay.AddRequestData("vnp_OrderInfo", $"{orderId}");
+        pay.AddRequestData("vnp_OrderInfo", orderCode);
         pay.AddRequestData("vnp_OrderType", "other");
-        pay.AddRequestData("vnp_ReturnUrl", vnp_ReturnUrl);
-        pay.AddRequestData("vnp_TxnRef", orderId);
+        pay.AddRequestData("vnp_ReturnUrl", vnp_ReturnUrl?.Trim() ?? "");
+        pay.AddRequestData("vnp_TxnRef", orderCode);
 
-        var paymentUrl = pay.CreateRequestUrl(vnp_Url, vnp_HashSecret);
+        var paymentUrl = pay.CreateRequestUrl(vnp_Url?.Trim() ?? "", vnp_HashSecret?.Trim() ?? "");
         return Redirect(paymentUrl);
     }
 
-    public IActionResult PaymentResult()
+    public async Task<IActionResult> PaymentResult()
     {
+        var responseData = Request.Query;
+        var vnpay = new VnPayLibrary();
+        string? orderInfo = responseData["vnp_OrderInfo"];
+        if (responseData != null)
+        {
+            string? transactionStatus = responseData["vnp_TransactionStatus"];
+            if (!string.IsNullOrEmpty(orderInfo) && transactionStatus == "00")
+            {
+                var Orders = _context.orders.Include(o => o.Product).Where(o => o.OrderCode == orderInfo).ToList();
+                foreach (var item in Orders)
+                {
+                    var product = _context.products.Find(item.Product.Id);
+                    if (product != null)
+                    {
+                        product.Quantity -= item.Quantity;
+                        _context.products.Update(product);
+                    }
+                    item.Status = 2;// Trạng Thái thanh toán thành công!
+                }
+                await _context.SaveChangesAsync();
+            }
+        }
         return View();
     }
 }

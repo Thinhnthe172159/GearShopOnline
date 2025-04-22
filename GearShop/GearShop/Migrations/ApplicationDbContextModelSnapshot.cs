@@ -34,7 +34,7 @@ namespace GearShop.Migrations
 
                     b.HasIndex("ProductTypesId");
 
-                    b.ToTable("BrandProductType");
+                    b.ToTable("BrandProductType", (string)null);
                 });
 
             modelBuilder.Entity("GearShop.Models.Brand", b =>
@@ -67,7 +67,7 @@ namespace GearShop.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("brands");
+                    b.ToTable("brands", (string)null);
                 });
 
             modelBuilder.Entity("GearShop.Models.Cart", b =>
@@ -94,7 +94,7 @@ namespace GearShop.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("carts");
+                    b.ToTable("carts", (string)null);
                 });
 
             modelBuilder.Entity("GearShop.Models.Comment", b =>
@@ -119,7 +119,7 @@ namespace GearShop.Migrations
 
                     b.HasIndex("ProductId");
 
-                    b.ToTable("comments");
+                    b.ToTable("comments", (string)null);
                 });
 
             modelBuilder.Entity("GearShop.Models.Order", b =>
@@ -152,7 +152,7 @@ namespace GearShop.Migrations
 
                     b.HasIndex("ProductId");
 
-                    b.ToTable("orders");
+                    b.ToTable("orders", (string)null);
                 });
 
             modelBuilder.Entity("GearShop.Models.Product", b =>
@@ -211,7 +211,7 @@ namespace GearShop.Migrations
 
                     b.HasIndex("ProductTypeId");
 
-                    b.ToTable("products");
+                    b.ToTable("products", (string)null);
                 });
 
             modelBuilder.Entity("GearShop.Models.ProductImage", b =>
@@ -236,7 +236,7 @@ namespace GearShop.Migrations
 
                     b.HasIndex("ProductId");
 
-                    b.ToTable("productImages");
+                    b.ToTable("productImages", (string)null);
                 });
 
             modelBuilder.Entity("GearShop.Models.ProductType", b =>
@@ -272,7 +272,7 @@ namespace GearShop.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("productTypes");
+                    b.ToTable("productTypes", (string)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>

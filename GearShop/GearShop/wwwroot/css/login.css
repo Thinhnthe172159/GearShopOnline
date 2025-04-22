@@ -1,0 +1,111 @@
+﻿.background-radial-gradient {
+    background-color: hsl(218, 41%, 15%);
+    background-image: radial-gradient(650px circle at 0% 0%, hsl(218, 41%, 35%) 15%, hsl(218, 41%, 30%) 35%, hsl(218, 41%, 20%) 75%, hsl(218, 41%, 19%) 80%, transparent 100%), radial-gradient(1250px circle at 100% 100%, hsl(218, 41%, 45%) 15%, hsl(218, 41%, 30%) 35%, hsl(218, 41%, 20%) 75%, hsl(218, 41%, 19%) 80%, transparent 100%);
+}
+
+#radius-shape-1 {
+    height: 220px;
+    width: 220px;
+    top: -60px;
+    left: -130px;
+    animation-name: top-down2;
+    background: radial-gradient(#44006b, #ad1fff);
+    overflow: hidden;
+    animation-duration: 4s;
+    animation-iteration-count: infinite;
+    animation-direction: alternate;
+}
+
+@keyframes top-down1 {
+    0% {
+        transform: translateY(130px);
+    }
+
+    100% {
+        transform: translateY(160px);
+    }
+}
+
+#radius-shape-2 {
+    border-radius: 38% 62% 63% 37% / 70% 33% 67% 30%;
+    bottom: -60px;
+    right: -110px;
+    width: 300px;
+    height: 300px;
+    animation-name: top-down1;
+    background: radial-gradient(#44006b, #ad1fff);
+    overflow: hidden;
+    animation-duration: 5s;
+    animation-iteration-count: infinite;
+    animation-direction: alternate;
+}
+
+@keyframes top-down2 {
+    0% {
+        transform: translateY(0px);
+    }
+
+    100% {
+        transform: translateY(60px);
+    }
+}
+
+#radius-shape-3 {
+    border-radius: 400px 400px 400px 400px;
+    -webkit-border-radius: 200px 200px 200px 200px;
+    -moz-border-radius: 200px 200px 200px 200px;
+    bottom: -180px;
+    right: 100%;
+    width: 300px;
+    height: 300px;
+    animation-name: top-down3;
+    background: radial-gradient(#44006b, rgb(0, 255, 255));
+    overflow: hidden;
+    animation-duration: 5s;
+    animation-iteration-count: infinite;
+    animation-direction: alternate;
+}
+
+@keyframes top-down3 {
+    0% {
+        transform: translateY(0px);
+    }
+
+    100% {
+        transform: translateY(80px);
+    }
+}
+
+.denso {
+    animation-name: top-down4;
+    overflow: hidden;
+    animation-duration: 6s;
+    animation-iteration-count: infinite;
+    animation-direction: alternate;
+}
+
+@keyframes top-down4 {
+    0% {
+        transform: translateY(0px);
+    }
+
+    100% {
+        transform: translateY(90px);
+    }
+}
+
+.bg-glass {
+    background: rgba( 255, 255, 255, 0.15 );
+    box-shadow: 0 8px 32px 0 rgba( 31, 38, 135, 0.37 );
+    backdrop-filter: blur( 2.5px );
+    -webkit-backdrop-filter: blur( 2.5px );
+    border-radius: 10px;
+    border: 1px solid rgba( 255, 255, 255, 0.18 );
+}
+input:-webkit-autofill,
+input:hover {
+    -webkit-box-shadow: 0 0 0 30px white inset !important;
+    -webkit-text-fill-color: #000 !important;
+
+}
+

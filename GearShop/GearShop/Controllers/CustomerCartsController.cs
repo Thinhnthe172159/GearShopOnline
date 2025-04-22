@@ -10,9 +10,12 @@ using GearShop.Models;
 using AspNetCoreGeneratedDocument;
 using Microsoft.EntityFrameworkCore.Metadata.Conventions;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.Identity.Client;
 
 namespace GearShop.Controllers
 {
+
     public class CustomerCartsController : Controller
     {
         private readonly ApplicationDbContext _context;
@@ -24,10 +27,40 @@ namespace GearShop.Controllers
             _userManager = userManager;
         }
 
+        [HttpPost]
+        public async Task<IActionResult> ApplyCoupon(string? code)
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user != null)
+            {
+                var coupon = _context.coupons.FirstOrDefault(c => c.Code == code);
+                if (coupon != null && coupon.status == 1 && coupon.DateCreate < DateTime.Now && DateTime.Now < coupon.DateEnd)
+                {
+                    TempData["coupon"] = coupon.discout.ToString();
+                    TempData["Noti"] = "Đã áp dụng thành công mã khuyễn mại";
+                    return RedirectToAction(nameof(Index), new { Id = user.Id, couponCode = coupon.Code });
+                }
+                else
+                {
+                    TempData["Noti"] = "Mã khuyến mại không khả dụng tại thời điểm này!";
+                }
+                return RedirectToAction(nameof(Index), new { Id = user.Id });
+            }
+            return BadRequest();
+        }
+
 
         // GET: CustomerCarts
-        public async Task<IActionResult> Index(string Id)
+        [HttpGet]
+        public async Task<IActionResult> Index(string Id, string? couponCode)
         {
+            decimal coupon = 0;
+            if (TempData["coupon"] != null)
+            {
+                decimal.TryParse((TempData["coupon"] + ""), out coupon);
+            }
+            ViewBag.Coupon = coupon;
+            ViewBag.Code = couponCode;
             var user = await _userManager.GetUserAsync(User);
             string id = string.Empty;
             if (user != null)
@@ -60,6 +93,7 @@ namespace GearShop.Controllers
 
         // add to cart
         [HttpPost]
+        [Authorize(Roles = "Customer")]
         public async Task<IActionResult> AddToCart(string userId, long productId, int quantity = 1)
         {
             var cart = new Cart { UserId = userId, ProductId = productId, Quantity = quantity };
