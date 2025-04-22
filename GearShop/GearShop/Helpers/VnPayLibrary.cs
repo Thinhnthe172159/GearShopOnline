@@ -34,6 +34,6 @@ public class VnPayLibrary
 
     private class VnPayCompare : IComparer<string>
     {
-        public int Compare(string x, string y) => string.CompareOrdinal(x, y);
+        public int Compare(string? x, string? y) => string.CompareOrdinal(x, y);
     }
 }
