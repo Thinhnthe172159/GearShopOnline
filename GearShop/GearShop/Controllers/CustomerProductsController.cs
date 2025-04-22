@@ -56,6 +56,31 @@ namespace GearShop.Controllers
             return View(productRresults.ToPagedList(page, size));
         }
 
+        // add to cart
+        [HttpPost]
+        public async Task<IActionResult> AddToCart(string userId, long productId, int quantity = 1)
+        {
+            var cart = new Cart { UserId = userId, ProductId = productId, Quantity = quantity };
+            var productIncart = _context.carts.FirstOrDefault(p => p.ProductId == productId);
+            if (productIncart == null)
+            {
+                try
+                {
+                    _context.Add(cart);
+                    await _context.SaveChangesAsync();
+                    return RedirectToAction(nameof(Index));
+                }
+                catch (Exception) { }
+            }
+            else
+            {
+                productIncart.Quantity += 1;
+                _context.carts.Update(productIncart);
+                await _context.SaveChangesAsync();
+            }
+            return PartialView("_userCartPartial");
+        }
+
         // GET: CustomerProducts/Details/5
         public async Task<IActionResult> Details(long? id)
         {

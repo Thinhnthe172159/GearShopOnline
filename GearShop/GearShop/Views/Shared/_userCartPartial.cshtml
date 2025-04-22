@@ -1,0 +1,27 @@
+﻿@using Microsoft.EntityFrameworkCore
+@using Microsoft.AspNetCore.Identity
+@inject SignInManager<IdentityUser> SignInManager
+@inject UserManager<IdentityUser> UserManager
+@inject GearShop.Data.ApplicationDbContext _context
+
+
+@{
+	var user = await UserManager.GetUserAsync(User);
+	var roles = user != null ? await UserManager.GetRolesAsync(user) : new List<string>();
+}
+<partial name="_NotificationPartial" />
+@if (SignInManager.IsSignedIn(User) && !roles.Contains("Staff") && !roles.Contains("Staff"))
+{
+	int countItem = 0;
+	if (user != null)
+	{
+		countItem = _context.carts.Where(c => c.UserId == user.Id).Count();
+	}
+
+	
+		<a asp-action="Index" asp-controller="CustomerCarts" asp-route-Id="@(user!= null?user.Id:"")" class="btn px-0 ml-3">
+			<i class="fas fa-shopping-cart text-primary"></i>
+			<span class="badge text-secondary border border-secondary rounded-circle" style="padding-bottom: 2px;">@countItem</span>
+		</a>
+	
+} 

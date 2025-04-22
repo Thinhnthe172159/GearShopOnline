@@ -1,0 +1,51 @@
+﻿@if (TempData["Noti"] != null)
+{
+    <style>
+        .toast {
+            background-color: white;
+            border: 1px solid #ddd;
+            border-radius: 15px;
+            padding: 20px;
+            position: fixed;
+            width: 500px;
+            top: 30px;
+            right: 1px;
+            z-index: 99999;
+            opacity: 0;
+            font-size: 20px;
+            transform: scale(0.8);
+            transition: opacity 1s ease-in-out, transform 0.3s ease-in-out;
+        }
+    </style>
+    <div class="toast hide" id="myDiv" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="toast-header">
+            <strong class="me-auto">Hệ thống Thông báo</strong>
+            <p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</p>
+            <button type="button" class="btn btn-success ms-2 mb-1 justify-content-end" data-bs-dismiss="toast" id="close" aria-label="Close">
+               x
+            </button>
+        </div>
+        <div class="toast-body" id="text">
+        </div>
+    </div>
+
+    <script>
+        var message = '@TempData["Noti"]';
+
+        document.getElementById('text').innerHTML = message;
+        document.getElementById('myDiv').style.display = 'block';
+        document.getElementById('myDiv').style.opacity = '1';
+
+        setTimeout(function() {
+            document.getElementById('myDiv').style.opacity = '0';
+            setTimeout(function() {
+                document.getElementById('myDiv').style.display = 'none';
+            }, 500);
+        }, 5000);
+
+
+        $("#close").on('click', function () {
+            $("#myDiv").hide();
+        });
+    </script>
+}
