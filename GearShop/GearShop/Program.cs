@@ -6,6 +6,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllersWithViews();
 builder.Services.AddControllers();
 builder.Services.AddDbContext<ApplicationDbContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("Default")));
+builder.Services.Configure<GeminiSettings>(builder.Configuration.GetSection("Gemini"));
 
 builder.Services.AddDefaultIdentity<IdentityUser>(options =>
 {
