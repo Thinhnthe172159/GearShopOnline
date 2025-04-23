@@ -1,0 +1,34 @@
+﻿@model List<UserRoleViewModel>
+@{
+    ViewData["Title"] = "Quản lý vai trò người dùng";
+}
+
+<div class="container mt-4">
+    <h3 class="mb-4">Quản lý quyền truy cập</h3>
+
+    <table class="table table-bordered table-striped">
+        <thead class="table-dark">
+            <tr>
+                <th>Email</th>
+                <th>Tên đăng nhập</th>
+                <th>Vai trò</th>
+                <th>Thao tác</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var user in Model)
+            {
+                <tr>
+                    <td>@user.Email</td>
+                    <td>@user.UserName</td>
+                    <td>@string.Join(", ", user.Roles)</td>
+                    <td>
+                        <a asp-action="ManageRoles" asp-route-userId="@user.UserId" class="btn btn-primary btn-sm">
+                            <i class="fa fa-edit me-2"></i>Thay đổi vai trò
+                        </a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>

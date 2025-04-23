@@ -1,0 +1,48 @@
+﻿@model ManageRoleViewModel
+@{
+    ViewData["Title"] = "Thay đổi vai trò";
+}
+
+<div class="container mt-4">
+    <h3 class="mb-4">Thay đổi vai trò cho người dùng: @Model.UserName</h3>
+
+    <div class="card">
+        <div class="card-header">
+            Thông tin người dùng
+        </div>
+        <div class="card-body">
+            <p><strong>Email:</strong> @Model.Email</p>
+            <p><strong>Tên đăng nhập:</strong> @Model.UserName</p>
+            <p><strong>Vai trò hiện tại:</strong> @string.Join(", ", Model.UserRoles)</p>
+        </div>
+    </div>
+
+    <form asp-action="ManageRoles" method="post" class="mt-4">
+        <input type="hidden" asp-for="UserId" />
+        <input type="hidden" asp-for="UserName" />
+        <input type="hidden" asp-for="Email" />
+
+        <div class="card">
+            <div class="card-header">
+                Chọn vai trò
+            </div>
+            <div class="card-body">
+                <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+                @foreach (var role in Model.AllRoles)
+                {
+                    <div class="form-check mb-2">
+                        <input type="checkbox" name="selectedRoles" value="@role"
+                               class="form-check-input" id="role_@role"
+                        @(Model.UserRoles.Contains(role) ? "checked" : "") />
+                        <label class="form-check-label" for="role_@role">@role</label>
+                    </div>
+                }
+            </div>
+            <div class="card-footer">
+                <button type="submit" class="btn btn-primary">Lưu thay đổi</button>
+                <a asp-action="UserRoles" class="btn btn-secondary">Hủy</a>
+            </div>
+        </div>
+    </form>
+</div>

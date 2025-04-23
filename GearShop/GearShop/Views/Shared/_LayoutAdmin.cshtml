@@ -55,8 +55,23 @@
                     </div>
                 </div>
                 <div class="navbar-nav w-100">
-                    <a asp-action="Index" asp-controller="HomeStaff" class="nav-item nav-link @IsActive("HomeStaff")">
-                        <i class="fa fa-tachometer-alt me-2"></i>Dashboard
+                    <a asp-action="StaffList" asp-controller="HomeAdmin" class="nav-item nav-link @IsActive("HomeAdmin")">
+                        <i class="fa fa-users me-2"></i>Quản lý Staff
+                    </a>
+                    @functions {
+                        public string IsActive(string controller, string action = null)
+                        {
+                            var currentController = ViewContext.RouteData.Values["Controller"].ToString();
+                            var currentAction = ViewContext.RouteData.Values["Action"].ToString();
+
+                            if (action == null)
+                                return controller == currentController ? "active" : "";
+                            else
+                                return controller == currentController && action == currentAction ? "active" : "";
+                        }
+                    }
+                    <a asp-action="UserRoles" asp-controller="HomeAdmin" class="nav-item nav-link @IsActive("HomeAdmin", "UserRoles")">
+                        <i class="fa fa-user-tag me-2"></i>Quản lý quyền truy cập
                     </a>
                     <a asp-action="Index" asp-controller="ProductStaff" class="nav-item nav-link @IsActive("ProductStaff")">
                         <i class="fa fa-laptop me-2"></i>Quản lý sản phẩm
