@@ -89,37 +89,9 @@ namespace GearShop.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("Id,ProductName,BrandId,ProductTypeId,Description,Quantity,Price,InServiceDate,InStockDate,CreatedDate,CreatedBy,ModifiedDate,ModifiedBy,Status")] Product product, List<IFormFile> imageFiles)
         {
-            _logger.LogInformation("Create action called for product: {ProductName}", product.ProductName);
-            _logger.LogInformation("Submitted BrandId: {BrandId}, ProductTypeId: {ProductTypeId}", product.BrandId, product.ProductTypeId);
-
-            // Log raw form data
-            foreach (var key in Request.Form.Keys)
-            {
-                _logger.LogInformation("Form data: {Key} = {Value}", key, Request.Form[key]);
-            }
-
-            // Log bound product object
-            _logger.LogInformation("Bound Product: {Product}", System.Text.Json.JsonSerializer.Serialize(product));
-
             // Clear ModelState errors for navigation properties
             ModelState.Remove("Brand");
             ModelState.Remove("ProductType");
-
-            // Log all ModelState errors
-            if (!ModelState.IsValid)
-            {
-                var errors = ModelState
-                    .Where(x => x.Value.Errors.Count > 0)
-                    .Select(x => new { x.Key, x.Value.Errors })
-                    .ToList();
-                foreach (var error in errors)
-                {
-                    foreach (var err in error.Errors)
-                    {
-                        _logger.LogWarning("ModelState error for {Key}: {ErrorMessage}", error.Key, err.ErrorMessage);
-                    }
-                }
-            }
 
             bool hasValidationErrors = false;
 
@@ -241,17 +213,14 @@ namespace GearShop.Controllers
             {
                 try
                 {
-                    _logger.LogInformation("Saving product to database: {ProductName}", product.ProductName);
                     _context.Add(product);
                     await _context.SaveChangesAsync();
-                    _logger.LogInformation("Product saved successfully with ID: {ProductId}", product.Id);
 
                     if (imageFiles != null && imageFiles.Any(f => f != null && f.Length > 0))
                     {
                         string uploadsFolder = Path.Combine(_webHostEnvironment.WebRootPath, "product_img");
                         if (!Directory.Exists(uploadsFolder))
                         {
-                            _logger.LogInformation("Creating uploads folder: {UploadsFolder}", uploadsFolder);
                             Directory.CreateDirectory(uploadsFolder);
                         }
 
@@ -273,7 +242,6 @@ namespace GearShop.Controllers
                                     counter++;
                                 }
 
-                                _logger.LogInformation("Saving image: {FilePath}", filePath);
                                 using (var fileStream = new FileStream(filePath, FileMode.Create))
                                 {
                                     await imageFile.CopyToAsync(fileStream);
@@ -290,28 +258,23 @@ namespace GearShop.Controllers
                             }
                         }
                         await _context.SaveChangesAsync();
-                        _logger.LogInformation("Images saved successfully for product ID: {ProductId}", product.Id);
                     }
 
                     TempData["SuccessMessage"] = "Sản phẩm đã được thêm thành công!";
-                    _logger.LogInformation("Redirecting to Index after successful creation");
                     return RedirectToAction(nameof(Index));
                 }
                 catch (IOException ex)
                 {
-                    _logger.LogError(ex, "Error saving image files for product ID: {ProductId}", product.Id);
                     ModelState.AddModelError("imageFiles", "Lỗi khi lưu hình ảnh. Vui lòng thử lại.");
                     hasValidationErrors = true;
                 }
                 catch (DbUpdateException ex)
                 {
-                    _logger.LogError(ex, "Database error while creating product");
                     ModelState.AddModelError("", "Lỗi khi lưu sản phẩm vào cơ sở dữ liệu. Vui lòng kiểm tra dữ liệu và thử lại.");
                     hasValidationErrors = true;
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "Unexpected error while creating product");
                     ModelState.AddModelError("", "Đã xảy ra lỗi không mong muốn. Vui lòng thử lại sau.");
                     hasValidationErrors = true;
                 }
@@ -320,7 +283,6 @@ namespace GearShop.Controllers
             // Repopulate dropdowns
             ViewData["BrandId"] = new SelectList(_context.brands, "Id", "BrandName", product.BrandId);
             ViewData["ProductTypeId"] = new SelectList(_context.productTypes, "Id", "TypeName", product.ProductTypeId);
-            _logger.LogInformation("Returning Create view with validation errors");
             return View(product);
         }
 
@@ -402,7 +364,6 @@ namespace GearShop.Controllers
                 else
                 {
                     product.Brand = brand;
-                    _logger.LogInformation("Assigned Brand: {BrandName} (ID: {BrandId})", brand.BrandName, brand.Id);
                 }
 
                 if (productType == null)
@@ -413,16 +374,7 @@ namespace GearShop.Controllers
                 else
                 {
                     product.ProductType = productType;
-                    _logger.LogInformation("Assigned ProductType: {TypeName} (ID: {ProductTypeId})", productType.TypeName, productType.Id);
                 }
-            }
-
-            // Log ModelState errors
-            if (!ModelState.IsValid)
-            {
-                var errors = ModelState.SelectMany(x => x.Value.Errors).Select(e => e.ErrorMessage);
-                _logger.LogWarning("ModelState errors for product ID: {ProductId}. Errors: {Errors}", product.Id, string.Join("; ", errors));
-                hasValidationErrors = true;
             }
 
             // Validate image files and count
@@ -479,7 +431,6 @@ namespace GearShop.Controllers
                                 if (System.IO.File.Exists(filePath))
                                 {
                                     System.IO.File.Delete(filePath);
-                                    _logger.LogInformation("Deleted image file: {FilePath}", filePath);
                                 }
                                 _context.productImages.Remove(image);
                             }
@@ -545,12 +496,10 @@ namespace GearShop.Controllers
 
                     await _context.SaveChangesAsync();
                     TempData["SuccessMessage"] = "Sản phẩm đã được cập nhật thành công!";
-                    _logger.LogInformation("Product ID: {ProductId} updated successfully with Status: {Status}", product.Id, product.Status);
                     return RedirectToAction(nameof(Index));
                 }
                 catch (DbUpdateConcurrencyException ex)
                 {
-                    _logger.LogError(ex, "Concurrency error updating product ID: {ProductId}", product.Id);
                     if (!ProductExists(product.Id))
                     {
                         return NotFound();
@@ -560,7 +509,6 @@ namespace GearShop.Controllers
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "Error updating product ID: {ProductId}", product.Id);
                     ModelState.AddModelError("", "Đã xảy ra lỗi khi cập nhật sản phẩm. Vui lòng thử lại.");
                     hasValidationErrors = true;
                 }
@@ -569,7 +517,6 @@ namespace GearShop.Controllers
             // Repopulate dropdowns and return view with errors
             var brands = await _context.brands.ToListAsync();
             var productTypes = await _context.productTypes.ToListAsync();
-            _logger.LogInformation("Brands loaded: {BrandCount}, ProductTypes loaded: {ProductTypeCount}", brands.Count, productTypes.Count);
             ViewData["BrandId"] = new SelectList(brands, "Id", "BrandName", product.BrandId);
             ViewData["ProductTypeId"] = new SelectList(productTypes, "Id", "TypeName", product.ProductTypeId);
             return View(product);
