@@ -1,0 +1,34 @@
+﻿@model IEnumerable<GearShop.Models.Order>
+@{
+	TempData["Title"] = "Lịch sử mua hàng";
+}
+
+<style>
+	.text-decoration-underline {
+		text-decoration: underline;
+	}
+</style>
+
+<nav class="navbar navbar-expand-lg navbar-light bg-light">
+	<div class="container-fluid">
+		<a class="navbar-brand" href="#">
+			<img src="https://cdn-icons-png.flaticon.com/512/7718/7718888.png" alt="Avatar" class="rounded-circle" width="40">
+			<span class="ms-2">@User.Identity?.Name</span>
+		</a>
+		<button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+			<span class="navbar-toggler-icon"></span>
+		</button>
+		<div class="collapse navbar-collapse d-flex" id="navbarNav" style="font-size:20px">
+			<ul class="navbar-nav ms-auto justify-content-between">
+				<li class="nav-item"><a class="nav-link @(ViewBag.CurrentFilter.status != null && ViewBag.CurrentFilter.status == -1 ? "active text-decoration-underline":"" )" asp-action="Index" asp-route-status="-1"> 🕐 Tất cả</a></li>
+				<li class="nav-item"><a class="nav-link @(ViewBag.CurrentFilter.status != null && ViewBag.CurrentFilter.status == 1 ? "active text-decoration-underline":"" )" asp-action="Index" asp-route-status="1"> 💳 Chờ thanh toán</a></li>
+				<li class="nav-item"><a class="nav-link @(ViewBag.CurrentFilter.status != null && ViewBag.CurrentFilter.status == 3 ? "active text-decoration-underline":"" )" asp-action="Index" asp-route-status="3"> 🚛 Đang vận chuyển</a></li>
+				<li class="nav-item"><a class="nav-link @(ViewBag.CurrentFilter.status != null && ViewBag.CurrentFilter.status == 2 ? "active text-decoration-underline":"" )" asp-action="Index" asp-route-status="2"> 📦 Chờ giao hàng</a></li>
+				<li class="nav-item"><a class="nav-link @(ViewBag.CurrentFilter.status != null && ViewBag.CurrentFilter.status == 4 ? "active text-decoration-underline":"" )" asp-action="Index" asp-route-status="4"> ✔️ Hoàn thành</a></li>
+				<li class="nav-item"><a class="nav-link @(ViewBag.CurrentFilter.status != null && ViewBag.CurrentFilter.status == 0 ? "active text-decoration-underline":"" )" asp-action="Index" asp-route-status="0"> ✖️ Đã hủy</a></li>
+			</ul>
+		</div>
+	</div>
+</nav>
+
+<partial name="_OrderListPartial" model="Model" />
