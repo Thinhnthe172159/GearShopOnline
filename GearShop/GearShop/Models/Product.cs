@@ -33,5 +33,13 @@ namespace GearShop.Models
         public virtual ICollection<ProductImage> Images { get; set; } = new List<ProductImage>();
         public virtual ICollection<Comment> Comments { get; set; } = new List<Comment>();
 
+        public override string ToString()
+        {
+            return $"Sản phẩm [Mã sản phẩm={Id}, Tên sản phẩm={ProductName}, Thương hiệu={Brand?.BrandName}, " +
+                   $"Loại sản phẩm={ProductType?.TypeName}, Mô tả={Description}, Số lượng={Quantity}, " +
+                   $"Giá={Price}";
+        }
+
+
     }
 }
