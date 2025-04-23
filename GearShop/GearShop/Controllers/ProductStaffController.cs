@@ -9,6 +9,11 @@ using GearShop.Data;
 using GearShop.Models;
 using Microsoft.AspNetCore.Hosting;
 using System.IO;
+using System.Drawing.Printing;
+using X.PagedList;
+using X.PagedList.Mvc.Core;
+using X.PagedList.Extensions;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace GearShop.Controllers
 {
@@ -17,6 +22,7 @@ namespace GearShop.Controllers
         private readonly ApplicationDbContext _context;
         private readonly IWebHostEnvironment _webHostEnvironment;
         private readonly ILogger<ProductStaffController> _logger;
+        private const int PageSize = 10;
 
         public ProductStaffController(ApplicationDbContext context, IWebHostEnvironment webHostEnvironment, ILogger<ProductStaffController> logger)
         {
@@ -26,12 +32,18 @@ namespace GearShop.Controllers
         }
 
         // GET: ProductStaff
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(int? page)
         {
-            var applicationDbContext = _context.products
+            int pageNumber = page ?? 1;
+
+            var products = await _context.products
                 .Include(p => p.Brand)
-                .Include(p => p.ProductType);
-            return View(await applicationDbContext.ToListAsync());
+                .Include(p => p.ProductType)
+                .OrderBy(p => p.Id).ToListAsync();
+
+            var pagedProducts = products.ToPagedList(pageNumber, PageSize);
+
+            return View(pagedProducts);
         }
 
         // GET: ProductStaff/Details/5
@@ -43,6 +55,7 @@ namespace GearShop.Controllers
             }
 
             var product = await _context.products
+                .Include(p => p.Images)
                 .Include(p => p.Brand)
                 .Include(p => p.ProductType)
                 .FirstOrDefaultAsync(m => m.Id == id);
@@ -334,7 +347,6 @@ namespace GearShop.Controllers
             return View(product);
         }
 
-        // POST: ProductStaff/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(long id, [Bind("Id,ProductName,BrandId,ProductTypeId,Description,Quantity,Price,InServiceDate,InStockDate,CreatedDate,CreatedBy,ModifiedDate,ModifiedBy,Status")] Product product, List<IFormFile> imageFiles, long[] imagesToDelete)
@@ -346,6 +358,10 @@ namespace GearShop.Controllers
 
             bool hasValidationErrors = false;
 
+            // Clear ModelState errors for navigation properties
+            ModelState.Remove("Brand");
+            ModelState.Remove("ProductType");
+
             // Validate Description
             if (string.IsNullOrWhiteSpace(product.Description))
             {
@@ -353,35 +369,91 @@ namespace GearShop.Controllers
                 hasValidationErrors = true;
             }
 
-            // Validate image files if provided
-            if (imageFiles != null && imageFiles.Any(f => f != null && f.Length > 0))
+            // Validate BrandId and ProductTypeId
+            if (!product.BrandId.HasValue || product.BrandId <= 0)
             {
-                var existingImages = await _context.productImages.Where(pi => pi.ProductId == product.Id).CountAsync();
-                var newImageCount = imageFiles.Count(f => f != null && f.Length > 0);
-                if (existingImages - imagesToDelete.Length + newImageCount > 5)
+                ModelState.AddModelError("BrandId", "Vui lòng chọn một thương hiệu.");
+                hasValidationErrors = true;
+            }
+            if (!product.ProductTypeId.HasValue || product.ProductTypeId <= 0)
+            {
+                ModelState.AddModelError("ProductTypeId", "Vui lòng chọn một loại sản phẩm.");
+                hasValidationErrors = true;
+            }
+
+            // Validate Status
+            if (product.Status != 0 && product.Status != 1)
+            {
+                ModelState.AddModelError("Status", "Trạng thái không hợp lệ. Vui lòng chọn Đang bán hoặc Ngừng bán.");
+                hasValidationErrors = true;
+            }
+
+            // Load Brand and ProductType to satisfy navigation properties
+            if (!hasValidationErrors && product.BrandId.HasValue && product.ProductTypeId.HasValue)
+            {
+                var brand = await _context.brands.FindAsync(product.BrandId.Value);
+                var productType = await _context.productTypes.FindAsync(product.ProductTypeId.Value);
+
+                if (brand == null)
                 {
-                    ModelState.AddModelError("imageFiles", "Bạn chỉ có thể có tối đa 5 hình ảnh.");
+                    ModelState.AddModelError("BrandId", "Thương hiệu không tồn tại.");
                     hasValidationErrors = true;
                 }
+                else
+                {
+                    product.Brand = brand;
+                    _logger.LogInformation("Assigned Brand: {BrandName} (ID: {BrandId})", brand.BrandName, brand.Id);
+                }
 
+                if (productType == null)
+                {
+                    ModelState.AddModelError("ProductTypeId", "Loại sản phẩm không tồn tại.");
+                    hasValidationErrors = true;
+                }
+                else
+                {
+                    product.ProductType = productType;
+                    _logger.LogInformation("Assigned ProductType: {TypeName} (ID: {ProductTypeId})", productType.TypeName, productType.Id);
+                }
+            }
+
+            // Log ModelState errors
+            if (!ModelState.IsValid)
+            {
+                var errors = ModelState.SelectMany(x => x.Value.Errors).Select(e => e.ErrorMessage);
+                _logger.LogWarning("ModelState errors for product ID: {ProductId}. Errors: {Errors}", product.Id, string.Join("; ", errors));
+                hasValidationErrors = true;
+            }
+
+            // Validate image files and count
+            var existingImages = await _context.productImages.Where(pi => pi.ProductId == product.Id).ToListAsync();
+            var newImageCount = imageFiles?.Count(f => f != null && f.Length > 0) ?? 0;
+            var remainingImageCount = existingImages.Count - (imagesToDelete?.Length ?? 0);
+
+            if (remainingImageCount + newImageCount > 5)
+            {
+                ModelState.AddModelError("imageFiles", "Bạn chỉ có thể có tối đa 5 hình ảnh.");
+                hasValidationErrors = true;
+            }
+
+            // Validate new image files
+            if (newImageCount > 0)
+            {
                 var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".gif" };
                 const long maxFileSize = 10 * 1024 * 1024; // 10MB
 
-                foreach (var imageFile in imageFiles)
+                foreach (var imageFile in imageFiles.Where(f => f != null && f.Length > 0))
                 {
-                    if (imageFile != null && imageFile.Length > 0)
+                    var extension = Path.GetExtension(imageFile.FileName).ToLowerInvariant();
+                    if (!allowedExtensions.Contains(extension))
                     {
-                        var extension = Path.GetExtension(imageFile.FileName).ToLowerInvariant();
-                        if (!allowedExtensions.Contains(extension))
-                        {
-                            ModelState.AddModelError("imageFiles", $"Hình ảnh {imageFile.FileName} không hợp lệ. Chỉ chấp nhận các định dạng: .jpg, .jpeg, .png, .gif.");
-                            hasValidationErrors = true;
-                        }
-                        if (imageFile.Length > maxFileSize)
-                        {
-                            ModelState.AddModelError("imageFiles", $"Hình ảnh {imageFile.FileName} vượt quá kích thước tối đa 10MB.");
-                            hasValidationErrors = true;
-                        }
+                        ModelState.AddModelError("imageFiles", $"Hình ảnh {imageFile.FileName} không hợp lệ. Chỉ chấp nhận các định dạng: .jpg, .jpeg, .png, .gif.");
+                        hasValidationErrors = true;
+                    }
+                    if (imageFile.Length > maxFileSize)
+                    {
+                        ModelState.AddModelError("imageFiles", $"Hình ảnh {imageFile.FileName} vượt quá kích thước tối đa 10MB.");
+                        hasValidationErrors = true;
                     }
                 }
             }
@@ -390,42 +462,32 @@ namespace GearShop.Controllers
             {
                 try
                 {
-                    // Update product
+                    // Update product information
                     product.ModifiedDate = DateTime.Now;
-                    product.ModifiedBy = User.Identity?.Name;
+                    product.ModifiedBy = User.Identity?.Name ?? "Anonymous";
                     _context.Update(product);
 
                     // Handle image deletion
-                    var existingImages = await _context.productImages
-                        .Where(pi => pi.ProductId == product.Id)
-                        .OrderBy(pi => pi.Id)
-                        .ToListAsync();
-                    var deletedIndices = new List<int>();
-                    bool thumbnailDeleted = false;
                     if (imagesToDelete != null && imagesToDelete.Any())
                     {
-                        for (int i = 0; i < existingImages.Count; i++)
+                        foreach (var imageId in imagesToDelete)
                         {
-                            if (imagesToDelete.Contains(existingImages[i].Id))
+                            var image = existingImages.FirstOrDefault(pi => pi.Id == imageId);
+                            if (image != null)
                             {
-                                deletedIndices.Add(i);
-                                var image = existingImages[i];
-                                if (image.Isthumbnail == 1)
-                                {
-                                    thumbnailDeleted = true;
-                                }
                                 var filePath = Path.Combine(_webHostEnvironment.WebRootPath, image.ImageUrl.TrimStart('/'));
                                 if (System.IO.File.Exists(filePath))
                                 {
                                     System.IO.File.Delete(filePath);
+                                    _logger.LogInformation("Deleted image file: {FilePath}", filePath);
                                 }
                                 _context.productImages.Remove(image);
                             }
                         }
                     }
 
-                    // Add new images at deleted indices
-                    if (imageFiles != null && imageFiles.Any(f => f != null && f.Length > 0))
+                    // Handle new image uploads
+                    if (newImageCount > 0)
                     {
                         string uploadsFolder = Path.Combine(_webHostEnvironment.WebRootPath, "product_img");
                         if (!Directory.Exists(uploadsFolder))
@@ -434,105 +496,82 @@ namespace GearShop.Controllers
                         }
 
                         bool hasThumbnail = existingImages.Any(pi => pi.Isthumbnail == 1 && !imagesToDelete.Contains(pi.Id));
-                        int currentIndex = 0;
                         int newImageIndex = 0;
 
-                        foreach (var imageFile in imageFiles)
+                        foreach (var imageFile in imageFiles.Where(f => f != null && f.Length > 0))
                         {
-                            if (imageFile != null && imageFile.Length > 0)
+                            string fileName = Path.GetFileNameWithoutExtension(imageFile.FileName);
+                            string extension = Path.GetExtension(imageFile.FileName);
+                            string uniqueFileName = $"{fileName}{extension}";
+                            string filePath = Path.Combine(uploadsFolder, uniqueFileName);
+
+                            int counter = 1;
+                            while (System.IO.File.Exists(filePath))
                             {
-                                // Determine the index for the new image
-                                int targetIndex;
-                                if (deletedIndices.Any() && currentIndex < deletedIndices.Count)
-                                {
-                                    targetIndex = deletedIndices[currentIndex];
-                                    currentIndex++;
-                                }
-                                else
-                                {
-                                    targetIndex = existingImages.Count + newImageIndex;
-                                }
-                                newImageIndex++;
-
-                                string fileName = Path.GetFileNameWithoutExtension(imageFile.FileName);
-                                string extension = Path.GetExtension(imageFile.FileName);
-                                string uniqueFileName = fileName + extension;
-                                string filePath = Path.Combine(uploadsFolder, uniqueFileName);
-
-                                // Handle duplicate file names
-                                int counter = 1;
-                                while (System.IO.File.Exists(filePath))
-                                {
-                                    uniqueFileName = $"{fileName}_{counter}{extension}";
-                                    filePath = Path.Combine(uploadsFolder, uniqueFileName);
-                                    counter++;
-                                }
-
-                                // Save the file
-                                using (var fileStream = new FileStream(filePath, FileMode.Create))
-                                {
-                                    await imageFile.CopyToAsync(fileStream);
-                                }
-
-                                // Save image record to database
-                                var productImage = new ProductImage
-                                {
-                                    ImageUrl = $"/product_img/{uniqueFileName}",
-                                    ProductId = product.Id,
-                                    Isthumbnail = (!hasThumbnail && targetIndex == 0) || (thumbnailDeleted && targetIndex == 0) ? 1 : 0
-                                };
-
-                                _context.productImages.Add(productImage);
+                                uniqueFileName = $"{fileName}_{counter}{extension}";
+                                filePath = Path.Combine(uploadsFolder, uniqueFileName);
+                                counter++;
                             }
+
+                            using (var fileStream = new FileStream(filePath, FileMode.Create))
+                            {
+                                await imageFile.CopyToAsync(fileStream);
+                            }
+
+                            var productImage = new ProductImage
+                            {
+                                ImageUrl = $"/product_img/{uniqueFileName}",
+                                ProductId = product.Id,
+                                Isthumbnail = (!hasThumbnail && newImageIndex == 0) ? 1 : 0
+                            };
+                            _context.productImages.Add(productImage);
+                            newImageIndex++;
                         }
                     }
 
-                    // If thumbnail was deleted and no new images were added, set a new thumbnail
-                    if (thumbnailDeleted && !imageFiles.Any(f => f != null && f.Length > 0))
+                    // Update thumbnail if necessary
+                    if (existingImages.Any(pi => pi.Isthumbnail == 1 && imagesToDelete.Contains(pi.Id)))
                     {
-                        var remainingImages = await _context.productImages
+                        var newThumbnail = await _context.productImages
                             .Where(pi => pi.ProductId == product.Id && !imagesToDelete.Contains(pi.Id))
                             .OrderBy(pi => pi.Id)
                             .FirstOrDefaultAsync();
-                        if (remainingImages != null)
+                        if (newThumbnail != null)
                         {
-                            remainingImages.Isthumbnail = 1;
-                            _context.Update(remainingImages);
+                            newThumbnail.Isthumbnail = 1;
+                            _context.Update(newThumbnail);
                         }
                     }
 
                     await _context.SaveChangesAsync();
                     TempData["SuccessMessage"] = "Sản phẩm đã được cập nhật thành công!";
+                    _logger.LogInformation("Product ID: {ProductId} updated successfully with Status: {Status}", product.Id, product.Status);
                     return RedirectToAction(nameof(Index));
                 }
-                catch (DbUpdateConcurrencyException)
+                catch (DbUpdateConcurrencyException ex)
                 {
+                    _logger.LogError(ex, "Concurrency error updating product ID: {ProductId}", product.Id);
                     if (!ProductExists(product.Id))
                     {
                         return NotFound();
                     }
-                    else
-                    {
-                        throw;
-                    }
-                }
-                catch (IOException ex)
-                {
-                    _logger.LogError(ex, "Error handling image files for product");
-                    ModelState.AddModelError("imageFiles", "Lỗi khi xử lý hình ảnh. Vui lòng thử lại.");
+                    ModelState.AddModelError("", "Đã xảy ra lỗi đồng bộ hóa. Vui lòng thử lại.");
                     hasValidationErrors = true;
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "Unexpected error while updating product");
-                    ModelState.AddModelError("", "Đã xảy ra lỗi không mong muốn. Vui lòng thử lại sau.");
+                    _logger.LogError(ex, "Error updating product ID: {ProductId}", product.Id);
+                    ModelState.AddModelError("", "Đã xảy ra lỗi khi cập nhật sản phẩm. Vui lòng thử lại.");
                     hasValidationErrors = true;
                 }
             }
 
-            // Repopulate dropdowns
-            ViewData["BrandId"] = new SelectList(_context.brands, "Id", "BrandName", product.BrandId);
-            ViewData["ProductTypeId"] = new SelectList(_context.productTypes, "Id", "TypeName", product.ProductTypeId);
+            // Repopulate dropdowns and return view with errors
+            var brands = await _context.brands.ToListAsync();
+            var productTypes = await _context.productTypes.ToListAsync();
+            _logger.LogInformation("Brands loaded: {BrandCount}, ProductTypes loaded: {ProductTypeCount}", brands.Count, productTypes.Count);
+            ViewData["BrandId"] = new SelectList(brands, "Id", "BrandName", product.BrandId);
+            ViewData["ProductTypeId"] = new SelectList(productTypes, "Id", "TypeName", product.ProductTypeId);
             return View(product);
         }
 
@@ -545,6 +584,7 @@ namespace GearShop.Controllers
             }
 
             var product = await _context.products
+                .Include(p => p.Images)
                 .Include(p => p.Brand)
                 .Include(p => p.ProductType)
                 .FirstOrDefaultAsync(m => m.Id == id);

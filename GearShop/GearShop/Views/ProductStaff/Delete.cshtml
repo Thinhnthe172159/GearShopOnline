@@ -1,100 +1,160 @@
-﻿@model GearShop.Models.Product
+﻿    @model GearShop.Models.Product
+    @{
+        ViewData["Title"] = "Xóa sản phẩm";
+        Layout = "_LayoutStaff";
+    }
 
-@{
-    ViewData["Title"] = "Delete";
-    Layout = "_LayoutStaff";
-}
+    <div class="container-fluid pt-4 px-4">
+        <div class="row g-4">
+            <div class="col-12">
+                <div class="bg-light rounded h-100 p-4">
+                    <div class="d-flex align-items-center justify-content-between mb-4">
+                        <h4 class="mb-0">Xác nhận xóa sản phẩm</h4>
+                        <a asp-action="Index" class="btn btn-outline-secondary">
+                            <i class="fa fa-arrow-left me-1"></i>Quay lại danh sách
+                        </a>
+                    </div>
 
-<h1>Delete</h1>
+                    <div class="alert alert-danger mb-4">
+                        <h5 class="alert-heading">Cảnh báo!</h5>
+                        <p class="mb-0">Bạn có chắc chắn muốn xóa sản phẩm này? Hành động này không thể hoàn tác.</p>
+                    </div>
 
-<h3>Are you sure you want to delete this?</h3>
-<div>
-    <h4>Product</h4>
-    <hr />
-    <dl class="row">
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.ProductName)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.ProductName)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Description)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Description)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Quantity)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Quantity)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Price)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Price)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.InServiceDate)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.InServiceDate)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.InStockDate)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.InStockDate)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.CreatedDate)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.CreatedDate)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.CreatedBy)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.CreatedBy)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.ModifiedDate)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.ModifiedDate)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.ModifiedBy)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.ModifiedBy)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Status)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Status)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Brand)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Brand.Id)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.ProductType)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.ProductType.Id)
-        </dd>
-    </dl>
-    
-    <form asp-action="Delete">
-        <input type="hidden" asp-for="Id" />
-        <input type="submit" value="Delete" class="btn btn-danger" /> |
-        <a asp-action="Index">Back to List</a>
-    </form>
-</div>
+                    <div class="row">
+                        <!-- Product Basic Info -->
+                        <div class="col-md-4 mb-4">
+                            <div class="border rounded p-3 h-100">
+                                <h5 class="mb-3">Thông tin cơ bản</h5>
+                                <div class="mb-2">
+                                    <h6 class="fw-bold">Tên sản phẩm</h6>
+                                    <p>@Model.ProductName</p>
+                                </div>
+                                <div class="mb-2">
+                                    <h6 class="fw-bold">Giá bán</h6>
+                                    <p class="text-danger fw-bold">@string.Format("{0:N0}", Model.Price) đ</p>
+                                </div>
+                                <div class="mb-2">
+                                    <h6 class="fw-bold">Số lượng</h6>
+                                    <p>@Model.Quantity</p>
+                                </div>
+                                <div>
+                                    <h6 class="fw-bold">Trạng thái</h6>
+                                    @if (Model.Status == 1)
+                                    {
+                                        <span class="badge bg-success">Đang bán</span>
+                                    }
+                                    else if (Model.Status == 0)
+                                    {
+                                        <span class="badge bg-danger">Ngừng bán</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-secondary">@Model.Status</span>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Product Details -->
+                        <div class="col-md-8 mb-4">
+                            <div class="border rounded p-3 h-100">
+                                <h5 class="mb-3">Thông tin chi tiết</h5>
+                                <div class="row">
+                                    <div class="col-md-6 mb-2">
+                                        <h6 class="fw-bold">Thương hiệu</h6>
+                                        <p>@(Model.Brand?.BrandName ?? "Không có thông tin")</p>
+                                    </div>
+                                    <div class="col-md-6 mb-2">
+                                        <h6 class="fw-bold">Loại sản phẩm</h6>
+                                        <p>@(Model.ProductType?.TypeName ?? "Không có thông tin")</p>
+                                    </div>
+                                    <div class="col-md-6 mb-2">
+                                        <h6 class="fw-bold">Ngày nhập hàng</h6>
+                                        <p>@Model.InServiceDate.ToString("dd/MM/yyyy")</p>
+                                    </div>
+                                    <div class="col-md-6 mb-2">
+                                        <h6 class="fw-bold">Ngày mở bán</h6>
+                                        <p>@Model.InStockDate.ToString("dd/MM/yyyy")</p>
+                                    </div>
+                                    <div class="col-12">
+                                        <h6 class="fw-bold">Mô tả</h6>
+                                        <p>@(string.IsNullOrEmpty(Model.Description) ? "Không có mô tả" : (Model.Description.Length > 200 ? Model.Description.Substring(0, 200) + "..." : Model.Description))</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                <!-- Product Images -->
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <div class="border rounded p-3">
+                            <h5 class="mb-3">Hình ảnh sản phẩm</h5>
+                            @if (Model.Images != null && Model.Images.Any())
+                            {
+                                <div class="row g-2">
+                                    @foreach (var image in Model.Images.OrderBy(pi => pi.Id))
+                                    {
+                                        <div class="col-md-2 col-sm-4 col-6">
+                                            <div class="position-relative">
+                                                <img src="@image.ImageUrl" class="img-fluid rounded border" alt="@Model.ProductName" style="max-height: 150px; object-fit: cover;" />
+                                                @if (image.Isthumbnail == 1)
+                                                {
+                                                    <span class="position-absolute top-0 start-0 badge bg-primary">Ảnh đại diện</span>
+                                                }
+                                            </div>
+                                        </div>
+                                    }
+                                </div>
+                            }
+                            else
+                            {
+                                <p>Chưa có hình ảnh nào.</p>
+                            }
+                        </div>
+                    </div>
+                </div>
+
+                    <!-- Audit Information -->
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <div class="border rounded p-3">
+                                <h5 class="mb-3">Thông tin hệ thống</h5>
+                                <div class="row">
+                                    <div class="col-md-3 mb-2">
+                                        <h6 class="fw-bold">Ngày tạo</h6>
+                                        <p>@Model.CreatedDate.ToString("dd/MM/yyyy HH:mm")</p>
+                                    </div>
+                                    <div class="col-md-3 mb-2">
+                                        <h6 class="fw-bold">Người tạo</h6>
+                                        <p>@Model.CreatedBy</p>
+                                    </div>
+                                    <div class="col-md-3 mb-2">
+                                        <h6 class="fw-bold">Ngày cập nhật</h6>
+                                        <p>@(Model.ModifiedDate?.ToString("dd/MM/yyyy HH:mm") ?? "Chưa cập nhật")</p>
+                                    </div>
+                                    <div class="col-md-3 mb-2">
+                                        <h6 class="fw-bold">Người cập nhật</h6>
+                                        <p>@(string.IsNullOrEmpty(Model.ModifiedBy) ? "Chưa cập nhật" : Model.ModifiedBy)</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Delete Form -->
+                    <form asp-action="Delete" class="mt-4">
+                        <input type="hidden" asp-for="Id" />
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-danger">
+                                <i class="fa fa-trash me-1"></i>Xác nhận xóa
+                            </button>
+                            <a asp-action="Index" class="btn btn-outline-secondary">
+                                <i class="fa fa-times me-1"></i>Hủy
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
