@@ -1,0 +1,158 @@
+﻿@{
+    ViewData["Title"] = "Gemini AI Chat";
+}
+
+<div class="container mt-5">
+    <h2 class="text-center mb-4">Chat với Gearshop AI</h2>
+
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <div id="chat-container" class="border rounded p-3 mb-3" style="height: 400px; overflow-y: auto; background-color: #f8f9fa;">
+                <!-- Tin nhắn sẽ được thêm động bằng JavaScript -->
+            </div>
+            <form id="chat-form" onsubmit="sendMessage(event)">
+                <div class="input-group">
+                    <textarea class="form-control" id="prompt" name="prompt" rows="2" placeholder="Nhập câu hỏi của bạn..." required></textarea>
+                    <button type="submit" class="btn btn-primary">Gửi</button>
+                </div>
+            </form>
+            <button type="button" class="btn btn-secondary mt-2" onclick="clearChat()">Xóa lịch sử chat</button>
+        </div>
+    </div>
+</div>
+
+<style>
+    .message-user {
+        display: flex;
+        justify-content: flex-end;
+        margin-bottom: 15px;
+    }
+
+    .message-bot {
+        display: flex;
+        justify-content: flex-start;
+        margin-bottom: 15px;
+    }
+
+    .message-content {
+        max-width: 70%;
+        padding: 10px 15px;
+        border-radius: 15px;
+        word-break: break-word;
+    }
+
+    .message-user .message-content {
+        background-color: #007bff;
+        color: white;
+        border-bottom-right-radius: 5px;
+    }
+
+    .message-bot .message-content {
+        background-color: #6c757d;
+        color: white;
+        border-bottom-left-radius: 5px;
+    }
+</style>
+
+@section Scripts {
+    <script>
+        const chatContainer = document.getElementById('chat-container');
+        const chatForm = document.getElementById('chat-form');
+        const promptInput = document.getElementById('prompt');
+
+
+        function loadChatHistory() {
+            const history = JSON.parse(localStorage.getItem('chatHistory')) || [];
+            history.forEach(msg => {
+                addMessage(msg.content, msg.isUser);
+            });
+        }
+
+        function saveMessage(content, isUser) {
+            const history = JSON.parse(localStorage.getItem('chatHistory')) || [];
+            history.push({ content, isUser });
+            localStorage.setItem('chatHistory', JSON.stringify(history));
+        }
+
+        function clearChat() {
+            localStorage.removeItem('chatHistory');
+            chatContainer.innerHTML = '';
+        }
+
+
+        function addMessage(content, isUser = false) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = isUser ? 'message-user' : 'message-bot';
+            const messageContent = document.createElement('span');
+            messageContent.className = 'message-content';
+            messageContent.textContent = content;
+            messageDiv.appendChild(messageContent);
+            chatContainer.appendChild(messageDiv);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+
+        function typeWriter(text, element, callback, speed = 30) {
+            let i = 0;
+            element.textContent = '';
+            function type() {
+                if (i < text.length) {
+                    element.textContent += text.charAt(i);
+                    i++;
+                    setTimeout(type, speed);
+                } else if (callback) {
+                    callback();
+                }
+            }
+            type();
+        }
+
+
+        async function sendMessage(event) {
+            event.preventDefault();
+            const prompt = promptInput.value.trim();
+            if (!prompt) {
+                alert('Vui lòng nhập câu hỏi!');
+                return;
+            }
+
+
+            addMessage(prompt, true);
+            saveMessage(prompt, true);
+            promptInput.value = '';
+
+
+            const botMessageDiv = document.createElement('div');
+            botMessageDiv.className = 'message-bot';
+            const botMessageContent = document.createElement('span');
+            botMessageContent.className = 'message-content';
+            botMessageDiv.appendChild(botMessageContent);
+            chatContainer.appendChild(botMessageDiv);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+
+            try {
+                const response = await fetch('/Gemini/GenerateAjax', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ prompt })
+                });
+
+                const data = await response.json();
+                if (data.success) {
+                    typeWriter(data.result, botMessageContent, () => {
+                        saveMessage(data.result, false);
+                    });
+                } else {
+                    addMessage(`Lỗi: ${data.error}`);
+                    saveMessage(`Lỗi: ${data.error}`, false);
+                }
+            } catch (error) {
+                addMessage(`Lỗi kết nối: ${error.message}`);
+                saveMessage(`Lỗi kết nối: ${error.message}`, false);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', loadChatHistory);
+    </script>
+}
