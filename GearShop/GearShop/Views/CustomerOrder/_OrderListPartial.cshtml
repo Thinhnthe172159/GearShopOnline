@@ -1,0 +1,77 @@
+﻿@model IEnumerable<GearShop.Models.Order>
+
+
+<!-- Nội dung chính -->
+<div class="container-fluid">
+	<div class="row">
+		<!-- Nội dung chính -->
+		<div class="col-md-12">
+			<div class="container">
+				<!-- Thanh tìm kiếm -->
+				<form class="input-group mb-3" asp-action="Index">
+					<input type="search" name="search" class="form-control" value="@ViewBag.CurrentFilter.search" placeholder="Bạn có thể tìm kiếm theo Tên Shop, ID đơn hàng hoặc Tên Sản phẩm">
+					<input type="number" value="@ViewBag.CurrentFilter.status" name="status" hidden readonly disabled />
+					<button class="btn btn-outline-dark">Tìm</button>
+				</form>
+
+				<!-- Wrapper cho danh sách sản phẩm -->
+				<div class="product-wrapper" style="max-height: 700px; overflow-y: auto;">
+					@foreach (var item in Model)
+					{
+						<div class="card mb-3">
+							<div class="card-body">
+								<div class="row">
+									<div class="col-md-2">
+										@if (item.Product.Images.Count() != 0)
+										{
+											<img class="img-fluid" src="@((item.Product.Images.Where(a=>a.Isthumbnail == 1)).Count() == 1 ? item.Product.Images.FirstOrDefault(a=>a.Isthumbnail == 1)?.ImageUrl : item.Product.Images.FirstOrDefault()?.ImageUrl)" alt="" style="width: 100%; height: 100%; object-fit: cover;">
+										}
+										else
+										{
+											<img class="img-fluid" src="~/sourceimg/NoImage.jpg" alt="" style="width: 100%; height: 100%; object-fit: cover;">
+										}
+									</div>
+									<div class="col-md-6">
+										<h5 class="text-black">@item.Product.ProductName</h5>
+										<p>Mã đơn hàng: @item.OrderCode</p>
+										<p>Số lượng đặt: @item.Quantity</p>
+										<p><span class="btn text-light btn-primary">@(((List<OrderStatus>)ViewBag.OrderStatus).FirstOrDefault(s => s.Id == item.Status).Status)</span> @(item.ReviceDate != null ? " Thời gian: " + item.ReviceDate : "") </p>
+									</div>
+									<div class="col-md-4 text-end">
+										<p class="product-price">Đơn giá @((item.Product.Price).ToString("c0", new System.Globalization.CultureInfo("vi-VN"))) | <span class="text-decoration-line-through text-dark font-weight-bold">Tổng giá: @((item.Product.Price * item.Quantity).ToString("c0", new System.Globalization.CultureInfo("vi-VN")))</span></p>
+										<p class="cart-total text-danger font-weight-bold">Thành tiền: @item.SoldPrice.ToString("c0", new System.Globalization.CultureInfo("vi-VN"))</p>
+										<div class="d-flex justify-content-between">
+											<a class="btn btn-outline-secondary text-dark" asp-action="Details" asp-controller="CustomerProducts" asp-route-id="@item.Product.Id">Xem sản phẩm</a>
+											@if (item.Status == 1)
+											{
+												<form method="post" asp-action="RePayment" asp-controller="Payment">
+													<input name="OrderId" type="number" value="@item.Id" hidden readonly />
+													<button class="btn btn-danger" onclick="return confirm('Bạn có muốn thanh toán đơn hàng này không?')">Thanh toán Sản phẩm</button>
+												</form>
+
+												<form asp-action="Update" method="post">
+													<input hidden readonly name="status" type="number" value="0" />
+													<input name="Orderid" type="number" value="@item.Id" hidden readonly />
+													<button class="btn btn-primary text-white">Hủy đặt</button>
+												</form>
+
+											}
+											@if (item.Status == 3)
+											{
+												<form asp-action="Update" method="post">
+													<input hidden readonly name="status" type="number" value="4" />
+													<input name="Orderid" type="number" value="@item.Id" hidden readonly />
+													<button class="btn btn-danger" onclick="return confirm('Bạn có đồng ý nhận đơn hàng này không ?')">Đã nhận được hàng</button>
+												</form>
+											}
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
+					}
+				</div>
+			</div>
+		</div>
+	</div>
+</div>

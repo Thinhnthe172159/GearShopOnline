@@ -1,4 +1,5 @@
-﻿using GearShop.Data;
+﻿using GearShop.Controllers;
+using GearShop.Data;
 using GearShop.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -26,7 +27,8 @@ public class PaymentController : Controller
     {
         if (itemCarts == null || !itemCarts.Any())
         {
-            return BadRequest("Không có sản phẩm trong giỏ hàng.");
+            TempData["Noti"] = "Bạn chưa chọn sản phẩm nào để thanh toán!";
+            return RedirectToAction(nameof(Index), "CustomerCarts", new { Id = userId });
         }
 
         decimal amount = 0;
@@ -72,6 +74,46 @@ public class PaymentController : Controller
             }
         }
 
+        await _context.SaveChangesAsync();
+
+        string? vnp_TmnCode = _config["VnPay:TmnCode"];
+        string? vnp_HashSecret = _config["VnPay:HashSecret"];
+        string? vnp_Url = _config["VnPay:Url"];
+        string? vnp_ReturnUrl = _config["VnPay:ReturnUrl"];
+
+        var pay = new VnPayLibrary();
+        pay.AddRequestData("vnp_Version", "2.1.0");
+        pay.AddRequestData("vnp_Command", "pay");
+        pay.AddRequestData("vnp_TmnCode", vnp_TmnCode ?? "");
+        pay.AddRequestData("vnp_Amount", ((int)(amount * 100)).ToString());
+        pay.AddRequestData("vnp_CreateDate", DateTime.Now.ToString("yyyyMMddHHmmss"));
+        pay.AddRequestData("vnp_CurrCode", "VND");
+        pay.AddRequestData("vnp_IpAddr", HttpContext.Connection.RemoteIpAddress?.ToString() ?? "127.0.0.1");
+        pay.AddRequestData("vnp_Locale", "vn");
+        pay.AddRequestData("vnp_OrderInfo", orderCode);
+        pay.AddRequestData("vnp_OrderType", "other");
+        pay.AddRequestData("vnp_ReturnUrl", vnp_ReturnUrl?.Trim() ?? "");
+        pay.AddRequestData("vnp_TxnRef", orderCode);
+
+        var paymentUrl = pay.CreateRequestUrl(vnp_Url?.Trim() ?? "", vnp_HashSecret?.Trim() ?? "");
+        return Redirect(paymentUrl);
+    }
+
+
+    [HttpPost]
+    [Authorize(Roles = "Customer")]
+    public async Task<IActionResult> RePayment(long OrderId)
+    {
+        var orderItem = _context.orders.Find(OrderId);
+        decimal amount = 0;
+        string orderCode = Guid.NewGuid().ToString();
+        if (orderItem != null)
+        {
+            orderItem.OrderCode = orderCode;
+            orderItem.CreateDate = DateTime.Now;
+            amount = orderItem.SoldPrice;
+            _context.orders.Update(orderItem);
+        }
         await _context.SaveChangesAsync();
 
         string? vnp_TmnCode = _config["VnPay:TmnCode"];

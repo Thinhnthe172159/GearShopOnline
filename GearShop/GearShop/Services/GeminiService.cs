@@ -22,6 +22,13 @@ namespace GearShop.Services
 
         public async Task<(string Response, string? ImageUrl)> GenerateContentAsync(string prompt)
         {
+
+            var jsonFilter = await ExtractFilterFromPromptAsync(prompt);
+            if (jsonFilter.HasValue)
+            {
+                return await GetProductInfoFromFilter(jsonFilter.Value);
+            }
+
             // Kiểm tra xem prompt có liên quan đến sản phẩm hoặc cửa hàng không
             var productInfo = await GetProductInfoAsync(prompt);
             if (productInfo.HasValue)
@@ -62,7 +69,7 @@ namespace GearShop.Services
 
   
             string shopContext = "Bạn là trợ lý cho cửa hàng online GearShop. \r\nDữ liệu gồm các bảng sau với ánh xạ tiếng Việt:\r\n- Product (Sản phẩm): Id, ProductName (Tên sản phẩm), BrandId (Mã thương hiệu), ProductTypeId (Mã loại sản phẩm), Quantity (Số lượng), Price (Giá), Description (Mô tả), InServiceDate (Ngày đưa vào sử dụng), InStockDate (Ngày nhập kho).\r\n- Brand (Thương hiệu): Id, BrandName (Tên thương hiệu).\r\n- ProductType (Loại sản phẩm): Id, TypeName (Tên loại sản phẩm).\r\n- ProductImage (Hình ảnh sản phẩm): Id, ImageUrl (Đường dẫn ảnh), ProductId (Mã sản phẩm), Isthumbnail (Ảnh đại diện, 1 là ảnh chính).\r\nTừ câu hỏi tiếng Việt của khách, trả về JSON hợp lệ:\r\n- Nếu là câu hỏi về sản phẩm, trả về điều kiện lọc, ví dụ: { 'Category': 'chuột', 'IsWireless': true, 'MaxPrice': 500000 }.\r\n  - 'Category' ánh xạ với TypeName (Tên loại sản phẩm, ví dụ: 'chuột', 'điện thoại', 'tai nghe').\r\n  - 'MaxPrice' ánh xạ với Price (Giá, ví dụ: 500000).\r\n  - 'IsWireless' tìm trong ProductName hoặc Description chứa 'không dây' hoặc 'wireless'.\r\n  - Nếu có từ khóa 'thương hiệu', lọc theo BrandName (ví dụ: 'Apple', 'Logitech')."; 
-            if (prompt.Contains("cửa hàng") || prompt.Contains("shop"))
+            if (prompt.Contains("cửa hàng") || prompt.Contains("gearshop".ToLower()))
             {
 
                 shopContext = ExtractShopName(prompt) ?? shopContext;
@@ -163,5 +170,93 @@ namespace GearShop.Services
             // Hiện tại trả về null vì giả định chỉ có GearShop
             return null;
         }
+
+        private async Task<(string, string?)> GetProductInfoFromFilter(JsonElement json)
+        {
+            var query = _dbContext.products
+                .Include(p => p.Brand)
+                .Include(p => p.ProductType)
+                .Include(p => p.Images)
+                .AsQueryable();
+
+            if (json.TryGetProperty("Category", out var category))
+            {
+                var categoryStr = category.GetString()?.ToLower();
+                query = query.Where(p => p.ProductType.TypeName.ToLower().Contains(categoryStr));
+            }
+
+            if (json.TryGetProperty("MaxPrice", out var maxPrice))
+            {
+                if (maxPrice.TryGetDecimal(out decimal max))
+                    query = query.Where(p => p.Price <= max);
+            }
+
+            if (json.TryGetProperty("IsWireless", out var wireless) && wireless.GetBoolean())
+            {
+                query = query.Where(p => p.ProductName.ToLower().Contains("không dây") ||
+                                         p.Description.ToLower().Contains("không dây") ||
+                                         p.ProductName.ToLower().Contains("wireless") ||
+                                         p.Description.ToLower().Contains("wireless"));
+            }
+
+            if (json.TryGetProperty("Brand", out var brand))
+            {
+                var brandStr = brand.GetString()?.ToLower();
+                query = query.Where(p => p.Brand.BrandName.ToLower().Contains(brandStr));
+            }
+
+            var result = await query.FirstOrDefaultAsync();
+            if (result == null) return ("Không tìm thấy sản phẩm phù hợp.", null);
+
+            var image = result.Images.FirstOrDefault(i => i.Isthumbnail == 1)?.ImageUrl;
+            var response = $"Sản phẩm: {result.ProductName}\nGiá: {result.Price:C}\nThương hiệu: {result.Brand.BrandName}\nLoại: {result.ProductType.TypeName}";
+            return (response, image);
+        }
+
+
+
+        private async Task<JsonElement?> ExtractFilterFromPromptAsync(string prompt)
+        {
+            var requestBody = new
+            {
+                contents = new[]
+                {
+            new
+            {
+                parts = new[]
+                {
+                    new
+                    {
+                        text = $"Hãy phân tích câu hỏi tiếng Việt và trả về JSON với các thuộc tính sau nếu có: " +
+                               $"Category (loại sản phẩm), MaxPrice (giá tối đa), IsWireless (true nếu sản phẩm là không dây), Brand (thương hiệu).\n\n" +
+                               $"Ví dụ đầu ra: {{ \"Category\": \"chuột\", \"MaxPrice\": 500000, \"IsWireless\": true }}\n\nCâu hỏi: {prompt}"
+                    }
+                }
+            }
+        }
+            };
+
+            var url = $"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={_apiKey}";
+            var response = await _httpClient.PostAsJsonAsync(url, requestBody);
+            response.EnsureSuccessStatusCode();
+
+            var json = await response.Content.ReadFromJsonAsync<JsonElement>();
+            var text = json.GetProperty("candidates")[0]
+                           .GetProperty("content")
+                           .GetProperty("parts")[0]
+                           .GetProperty("text")
+                           .GetString();
+
+            try
+            {
+                var parsed = JsonSerializer.Deserialize<JsonElement>(text);
+                return parsed;
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
     }
 }
