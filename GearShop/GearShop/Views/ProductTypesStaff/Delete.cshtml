@@ -1,0 +1,51 @@
+﻿@model GearShop.Models.ProductType
+
+@{
+    ViewData["Title"] = "Xóa danh mục";
+    Layout = "_LayoutStaff";
+}
+
+<div class="container-fluid pt-4 px-4">
+    <div class="row g-4">
+        <div class="col-12">
+            <div class="bg-light rounded h-100 p-4">
+                <h4 class="mb-4">Xóa danh mục</h4>
+                <h6>Bạn có chắc chắn muốn xóa danh mục này?</h6>
+                <dl class="row">
+                    <dt class="col-sm-2">
+                        @Html.DisplayNameFor(model => model.TypeName)
+                    </dt>
+                    <dd class="col-sm-10">
+                        @Html.DisplayFor(model => model.TypeName)
+                    </dd>
+                    <dt class="col-sm-2">
+                        @Html.DisplayNameFor(model => model.ImageUrl)
+                    </dt>
+                    <dd class="col-sm-10">
+                        @if (!string.IsNullOrEmpty(Model.ImageUrl))
+                        {
+                            <img src="@Model.ImageUrl" style="max-width: 200px; height: auto;" onerror="this.src='/sourceImg/NoImage.jpg';" />
+                        }
+                        else
+                        {
+                            <img src="/sourceImg/NoImage.jpg" style="max-width: 200px; height: auto;" />
+                        }
+                    </dd>
+                    <dt class="col-sm-2">
+                        @Html.DisplayNameFor(model => model.Status)
+                    </dt>
+                    <dd class="col-sm-10">
+                        @(Model.Status == 1 ? "Đang bán" : "Không bán")
+                    </dd>
+                </dl>
+                <form asp-action="Delete">
+                    <input type="hidden" asp-for="Id" />
+                    <div class="d-flex justify-content-end">
+                        <a asp-action="Index" class="btn btn-secondary me-2">Quay lại</a>
+                        <button type="submit" class="btn btn-danger">Xóa</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

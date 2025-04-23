@@ -1,0 +1,86 @@
+﻿@model GearShop.Models.ProductType
+
+@{
+    ViewData["Title"] = "Tạo mới danh mục";
+    Layout = "_LayoutStaff";
+}
+
+<div class="container-fluid pt-4 px-4">
+    <div class="row g-4">
+        <div class="col-12">
+            <div class="bg-light rounded h-100 p-4">
+                <h4 class="mb-4">Tạo mới danh mục</h4>
+                <form asp-action="Create" enctype="multipart/form-data">
+                    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                    <div class="mb-3">
+                        <label asp-for="TypeName" class="form-label">Tên danh mục</label>
+                        <input asp-for="TypeName" class="form-control" />
+                        <span asp-validation-for="TypeName" class="text-danger"></span>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Ảnh danh mục</label>
+                        <input type="file" name="ImageFile" class="form-control image-input" accept=".jpg,.jpeg,.png,.gif" />
+                        <small class="text-muted">Chỉ chấp nhận .jpg, .jpeg, .png, .gif, tối đa 10MB.</small>
+                        <div class="image-preview mt-2" style="display: none;">
+                            <img src="" alt="Image Preview" style="max-width: 200px; max-height: 200px;" />
+                            <p class="file-name mt-1"></p>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label asp-for="Status" class="form-label">Trạng thái</label>
+                        <select asp-for="Status" class="form-select">
+                            <option value="1">Đang bán</option>
+                            <option value="0">Không bán</option>
+                        </select>
+                        <span asp-validation-for="Status" class="text-danger"></span>
+                    </div>
+                    <div class="d-flex justify-content-end">
+                        <a asp-action="Index" class="btn btn-secondary me-2">Quay lại</a>
+                        <button type="submit" class="btn btn-primary">Tạo mới</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        document.querySelector('.image-input').addEventListener('change', function (e) {
+            const file = this.files[0];
+            const previewContainer = this.nextElementSibling.nextElementSibling; // Skip the small text
+            const previewImage = previewContainer.querySelector('img');
+            const fileName = previewContainer.querySelector('.file-name');
+
+            if (file) {
+                const allowedExtensions = ['image/jpeg', 'image/png', 'image/gif'];
+                const maxSize = 10 * 1024 * 1024; // 10MB
+
+                if (!allowedExtensions.includes(file.type)) {
+                    alert('Chỉ chấp nhận các định dạng: .jpg, .jpeg, .png, .gif.');
+                    this.value = '';
+                    return;
+                }
+
+                if (file.size > maxSize) {
+                    alert('Kích thước tệp vượt quá 10MB.');
+                    this.value = '';
+                    return;
+                }
+
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    previewImage.src = e.target.result;
+                    previewContainer.style.display = 'block';
+                };
+                reader.readAsDataURL(file);
+                fileName.textContent = file.name;
+            } else {
+                previewContainer.style.display = 'none';
+                previewImage.src = '';
+                fileName.textContent = '';
+            }
+        });
+    </script>
+}
