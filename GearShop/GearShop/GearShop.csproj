@@ -23,7 +23,6 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <Folder Include="NewFolder\" />
 	  <Folder Include="wwwroot\DashBroadTemplate\img\" />
 	  <Folder Include="wwwroot\product_img\" />
 	</ItemGroup>
