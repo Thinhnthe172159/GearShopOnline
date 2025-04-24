@@ -18,5 +18,13 @@ namespace GearShop.Models
         public int Status { get; set; }
         public virtual ICollection<Product> Products { get; set; } = new List<Product>();
         public virtual ICollection<Brand> Brands { get; set; } = new List<Brand>();
+
+        public override string ToString()
+        {
+            return $"Loại sản phẩm [Mã loại={Id}, Tên loại={TypeName}, Ngày tạo={DateTime:dd/MM/yyyy}, " +
+                   $"Người tạo={CreatedBy}, Hình ảnh={ImageUrl}, Ngày chỉnh sửa={ModifiedDate:dd/MM/yyyy}, " +
+                   $"Người chỉnh sửa={MofifiedBy}, Trạng thái={Status}]";
+        }
+
     }
 }
