@@ -1,30 +1,228 @@
-﻿@page
+﻿
+@page
 @model IndexModel
 @{
     ViewData["Title"] = "Profile";
     ViewData["ActivePage"] = ManageNavPages.Index;
 }
 
-<h3>@ViewData["Title"]</h3>
-<partial name="_StatusMessage" for="StatusMessage" />
-<div class="row">
-    <div class="col-md-6">
-        <form id="profile-form" method="post">
-            <div asp-validation-summary="ModelOnly" class="text-danger" role="alert"></div>
-            <div class="form-floating mb-3">
-                <input asp-for="Username" class="form-control" placeholder="Please choose your username." disabled />
-                <label asp-for="Username" class="form-label"></label>
+<div class="container mt-5">
+    <div class="card shadow-sm">
+        <div class="card-header bg-primary text-white">
+            <h3 class="mb-0">@ViewData["Title"]</h3>
+        </div>
+        <div class="card-body">
+            <partial name="_StatusMessage" for="StatusMessage" />
+            <div class="row">
+                <div class="col-md-6">
+                    <form id="profile-form" method="post">
+                        <div asp-validation-summary="ModelOnly" class="text-danger" role="alert"></div>
+                        <div class="form-floating mb-3">
+                            <input asp-for="Username" class="form-control" placeholder="Please choose your username." disabled />
+                            <label asp-for="Username" class="form-label"></label>
+                        </div>
+                        <h3>Thông tin liên lạc</h3>
+                        <div class="form-floating mb-3">
+                            <input asp-for="Input.PhoneNumber" class="form-control" placeholder="Please enter your phone number." type="tel" />
+                            <label asp-for="Input.PhoneNumber" class="form-label"></label>
+                            <span asp-validation-for="Input.PhoneNumber" class="text-danger"></span>
+                        </div>
+                        <h3>Địa Chỉ</h3>
+                        <div class="form-floating mb-3">
+                            <select id="tinh" class="form-control">
+                                <option value="">Chọn Tỉnh/Thành</option>
+                            </select>
+                            <label for="tinh" class="form-label">Tỉnh/Thành</label>
+                            <input asp-for="Input.City" id="hidden_tinh" type="hidden" />
+                            <span asp-validation-for="Input.City" class="text-danger"></span>
+                        </div>
+                        <div class="form-floating mb-3">
+                            <select id="quan" class="form-control">
+                                <option value="">Chọn Quận/Huyện</option>
+                            </select>
+                            <label for="quan" class="form-label">Quận/Huyện</label>
+                            <input asp-for="Input.District" id="hidden_quan" type="hidden" />
+                            <span asp-validation-for="Input.District" class="text-danger"></span>
+                        </div>
+                        <div class="form-floating mb-3">
+                            <select id="phuong" class="form-control">
+                                <option value="">Chọn Phường/Xã</option>
+                            </select>
+                            <label for="phuong" class="form-label">Phường/Xã</label>
+                            <input asp-for="Input.Commune" id="hidden_phuong" type="hidden" />
+                            <span asp-validation-for="Input.Commune" class="text-danger"></span>
+                        </div>
+                        <button id="update-profile-button" type="submit" class="w-100 btn btn-lg btn-primary">Save</button>
+                    </form>
+                </div>
+                <div class="col-md-6">
+                    <style>
+                        #map {
+                            width: 100%;
+                            height: 400px;
+                        }
+                    </style>
+                    <div id="map"></div>
+                </div>
             </div>
-            <div class="form-floating mb-3">
-                <input asp-for="Input.PhoneNumber" class="form-control" placeholder="Please enter your phone number."/>
-                <label asp-for="Input.PhoneNumber" class="form-label"></label>
-                <span asp-validation-for="Input.PhoneNumber" class="text-danger"></span>
-            </div>
-            <button id="update-profile-button" type="submit" class="w-100 btn btn-lg btn-primary">Save</button>
-        </form>
+        </div>
     </div>
 </div>
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+    <script>
+        $(document).ready(function () {
+            // Initialize Leaflet map
+            var map = L.map('map').setView([21.0285, 105.8542], 10); // Default to Hanoi
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            }).addTo(map);
+
+            var marker;
+
+            function updateMap(address) {
+                if (!address) return;
+                var url = 'https://nominatim.openstreetmap.org/search?format=json&q=' + encodeURIComponent(address);
+                fetch(url)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.length > 0) {
+                            var lat = parseFloat(data[0].lat);
+                            var lon = parseFloat(data[0].lon);
+                            map.setView([lat, lon], 14);
+                            if (marker) map.removeLayer(marker);
+                            marker = L.marker([lat, lon]).addTo(map).bindPopup(address).openPopup();
+                        } else {
+                            console.error('No results found for address: ' + address);
+                        }
+                    })
+                    .catch(error => console.error('Error fetching map data:', error));
+            }
+
+            // Initialize hidden inputs with saved values
+            var currentCity = '@Html.Raw(System.Web.HttpUtility.JavaScriptStringEncode(Model.Input.City ?? ""))';
+            var currentDistrict = '@Html.Raw(System.Web.HttpUtility.JavaScriptStringEncode(Model.Input.District ?? ""))';
+            var currentCommune = '@Html.Raw(System.Web.HttpUtility.JavaScriptStringEncode(Model.Input.Commune ?? ""))';
+            $("#hidden_tinh").val(currentCity);
+            $("#hidden_quan").val(currentDistrict);
+            $("#hidden_phuong").val(currentCommune);
+
+            // Construct initial map address
+            var initialAddress = [currentCity, currentDistrict, currentCommune].filter(Boolean).join(' ');
+            if (initialAddress) {
+                updateMap(initialAddress);
+            }
+
+            // Fetch provinces
+            $.getJSON('https://esgoo.net/api-tinhthanh/1/0.htm', function (data_tinh) {
+                if (data_tinh.error == 0) {
+                    $("#tinh").empty().append('<option value="">Chọn Tỉnh/Thành</option>');
+                    var provinceMap = {};
+                    $.each(data_tinh.data, function (key_tinh, val_tinh) {
+                        $("#tinh").append('<option value="' + val_tinh.id + '">' + val_tinh.full_name + '</option>');
+                        provinceMap[val_tinh.full_name] = val_tinh.id;
+                    });
+
+                    // Set saved province
+                    if (currentCity && provinceMap[currentCity]) {
+                        $("#tinh").val(provinceMap[currentCity]);
+                    }
+
+                    // Load districts if a city is saved
+                    if (currentCity && provinceMap[currentCity]) {
+                        $.getJSON('https://esgoo.net/api-tinhthanh/2/' + provinceMap[currentCity] + '.htm', function (data_quan) {
+                            if (data_quan.error == 0) {
+                                $("#quan").empty().append('<option value="">Chọn Quận/Huyện</option>');
+                                var districtMap = {};
+                                $.each(data_quan.data, function (key_quan, val_quan) {
+                                    $("#quan").append('<option value="' + val_quan.id + '">' + val_quan.full_name + '</option>');
+                                    districtMap[val_quan.full_name] = val_quan.id;
+                                });
+
+                                // Set saved district
+                                if (currentDistrict && districtMap[currentDistrict]) {
+                                    $("#quan").val(districtMap[currentDistrict]);
+                                }
+
+                                // Load communes if a district is saved
+                                if (currentDistrict && districtMap[currentDistrict]) {
+                                    $.getJSON('https://esgoo.net/api-tinhthanh/3/' + districtMap[currentDistrict] + '.htm', function (data_phuong) {
+                                        if (data_phuong.error == 0) {
+                                            $("#phuong").empty().append('<option value="">Chọn Phường/Xã</option>');
+                                            var communeMap = {};
+                                            $.each(data_phuong.data, function (key_phuong, val_phuong) {
+                                                $("#phuong").append('<option value="' + val_phuong.id + '">' + val_phuong.full_name + '</option>');
+                                                communeMap[val_phuong.full_name] = val_phuong.id;
+                                            });
+
+                                            // Set saved commune
+                                            if (currentCommune && communeMap[currentCommune]) {
+                                                $("#phuong").val(communeMap[currentCommune]);
+                                            }
+                                        }
+                                    });
+                                }
+                            }
+                        });
+                    }
+                }
+            });
+
+            // Handle province change
+            $("#tinh").change(function () {
+                var city = $(this).find("option:selected").text();
+                var idtinh = $(this).val();
+                $("#hidden_tinh").val(city);
+                $("#quan").empty().append('<option value="">Chọn Quận/Huyện</option>');
+                $("#phuong").empty().append('<option value="">Chọn Phường/Xã</option>');
+                $("#hidden_quan").val('');
+                $("#hidden_phuong").val('');
+                updateMap(city);
+
+                if (idtinh) {
+                    $.getJSON('https://esgoo.net/api-tinhthanh/2/' + idtinh + '.htm', function (data_quan) {
+                        if (data_quan.error == 0) {
+                            $.each(data_quan.data, function (key_quan, val_quan) {
+                                $("#quan").append('<option value="' + val_quan.id + '">' + val_quan.full_name + '</option>');
+                            });
+                        }
+                    });
+                }
+            });
+
+            // Handle district change
+            $("#quan").change(function () {
+                var district = $(this).find("option:selected").text();
+                var idquan = $(this).val();
+                var city = $("#hidden_tinh").val();
+                $("#hidden_quan").val(district);
+                $("#phuong").empty().append('<option value="">Chọn Phường/Xã</option>');
+                $("#hidden_phuong").val('');
+                updateMap(city + ' ' + district);
+
+                if (idquan) {
+                    $.getJSON('https://esgoo.net/api-tinhthanh/3/' + idquan + '.htm', function (data_phuong) {
+                        if (data_phuong.error == 0) {
+                            $.each(data_phuong.data, function (key_phuong, val_phuong) {
+                                $("#phuong").append('<option value="' + val_phuong.id + '">' + val_phuong.full_name + '</option>');
+                            });
+                        }
+                    });
+                }
+            });
+
+            // Handle commune change
+            $("#phuong").change(function () {
+                var commune = $(this).find("option:selected").text();
+                var city = $("#hidden_tinh").val();
+                var district = $("#hidden_quan").val();
+                $("#hidden_phuong").val(commune);
+                updateMap(city + ' ' + district + ' ' + commune);
+            });
+        });
+    </script>
 }

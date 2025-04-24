@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using System.Net.Http.Json;
 using System.Text.Json;
+using System.Threading.Tasks;
 
 namespace GearShop.Services
 {
@@ -20,7 +21,7 @@ namespace GearShop.Services
             _dbContext = dbContext;
         }
 
-        public async Task<(string Response, string? ImageUrl)> GenerateContentAsync(string prompt)
+        public async Task<(string HtmlResponse, string? ImageUrl)> GenerateContentAsync(string prompt)
         {
             prompt = prompt.Trim();
 
@@ -38,7 +39,7 @@ namespace GearShop.Services
                 var productInfo = await GetProductInfoAsync(prompt);
                 if (productInfo.HasValue)
                 {
-                    return (productInfo.Value.Response, productInfo.Value.ImageUrl);
+                    return (productInfo.Value.HtmlResponse, productInfo.Value.ImageUrl);
                 }
             }
 
@@ -70,10 +71,29 @@ Câu hỏi: {prompt}";
                 .GetProperty("text")
                 .GetString();
 
-            return (generatedText, null);
+            // Convert plain text response to HTML
+            var htmlResponse = $@"<!DOCTYPE html>
+<html lang=""vi"">
+<head>
+    <meta charset=""UTF-8"">
+    <meta name=""viewport"" content=""width=device-width, initial-scale=1.0"">
+    <title>Kết quả từ GearShop</title>
+    <script src=""https://cdn.tailwindcss.com""></script>
+</head>
+<body class=""bg-gray-100 font-sans"">
+    <div class=""container mx-auto p-6"">
+        <div class=""bg-white rounded-lg shadow-md p-6"">
+            <h1 class=""text-2xl font-bold mb-4 text-light"">Gear Shop AI</h1>
+            <p class=""text-gray-700 whitespace-pre-wrap"">{System.Web.HttpUtility.HtmlEncode(generatedText)}</p>
+        </div>
+    </div>
+</body>
+</html>";
+
+            return (htmlResponse, null);
         }
 
-        private async Task<(string Response, string? ImageUrl)?> GetProductInfoAsync(string prompt)
+        private async Task<(string HtmlResponse, string? ImageUrl)?> GetProductInfoAsync(string prompt)
         {
             prompt = prompt.ToLower().Trim();
 
@@ -81,8 +101,12 @@ Câu hỏi: {prompt}";
             var products = await _dbContext.products
                 .Include(p => p.Brand)
                 .Include(p => p.ProductType)
+                .Include(p => p.Images) // Ensure Images are included
                 .ToListAsync();
             var productStrings = products.Select(p => p.ToString()).ToList();
+
+            var productImages = await _dbContext.productImages.ToListAsync();
+            var productImageString = productImages.Select(p => p.ToString()).ToList();
 
             var productTypes = await _dbContext.productTypes.ToListAsync();
             var productTypeStrings = productTypes.Select(pt => pt.ToString()).ToList();
@@ -100,7 +124,11 @@ Câu hỏi: {prompt}";
 {string.Join("\n", productTypeStrings)}
 
 3. Thương hiệu:
-{string.Join("\n", brandStrings)}";
+{string.Join("\n", brandStrings)}
+
+4. Ảnh sản phẩm:
+{string.Join("\n", productImageString)}
+";
 
             // Define the system prompt with GearShop context and data
             string shopContext = $@"Bạn là trợ lý cho cửa hàng online GearShop. Nhiệm vụ chính của bạn là hỗ trợ khách hàng bằng cách cung cấp thông tin chính xác về sản phẩm, thương hiệu và loại sản phẩm dựa trên dữ liệu cửa hàng. Trả lời bằng tiếng Việt, thân thiện và chuyên nghiệp.
@@ -109,7 +137,7 @@ Dữ liệu được cung cấp dưới dạng chuỗi từ các bảng sau, s�
 - Product (Sản phẩm): Định dạng 'Sản phẩm [Mã sản phẩm={{Id}}, Tên sản phẩm={{ProductName}}, Thương hiệu={{Brand?.BrandName}}, Loại sản phẩm={{ProductType?.TypeName}}, Mô tả={{Description}}, Số lượng={{Quantity}}, Giá={{Price}}]'
 - ProductType (Loại sản phẩm): Định dạng 'Loại sản phẩm [Mã loại={{Id}}, Tên loại={{TypeName}}, Ngày tạo={{DateTime:dd/MM/yyyy}}, Người tạo={{CreatedBy}}, Hình ảnh={{ImageUrl}}, Ngày chỉnh sửa={{ModifiedDate:dd/MM/yyyy}}, Người chỉnh sửa={{MofifiedBy}}, Trạng thái={{Status}}]'
 - Brand (Thương hiệu): Định dạng 'Thương hiệu [Mã thương hiệu={{Id}}, Tên thương hiệu={{BrandName}}, Ngày tạo={{CreateDate:dd/MM/yyyy}}, Người tạo={{CreatedBy}}, Ngày chỉnh sửa={{ModifiedDate:dd/MM/yyyy}}, Người chỉnh sửa={{ModifiedBy}}, Trạng thái={{Status}}]'
-
+- ProductImage (Ảnh sản phẩm): Định dạng 'Ảnh sản phẩm [[Mã ảnh={{Id}}, Đường dẫn ảnh={{ImageUrl}}, Mã sản phẩm={{ProductId}}]'
 {dataContext}
 
 Hướng dẫn:
@@ -156,14 +184,44 @@ Câu hỏi: {prompt}";
                 var firstProduct = products.FirstOrDefault(p => generatedText.Contains(p.ProductName));
                 if (firstProduct != null)
                 {
-                    thumbnail = firstProduct.Images.FirstOrDefault(i => i.Isthumbnail == 1)?.ImageUrl;
+                    var thumbnailImage = firstProduct.Images.FirstOrDefault(i => i.Isthumbnail == 1);
+                    if (thumbnailImage != null && !string.IsNullOrEmpty(thumbnailImage.ImageUrl))
+                    {
+                        thumbnail = thumbnailImage.ImageUrl;
+                        // Optionally validate the URL
+                        if (!Uri.IsWellFormedUriString(thumbnail, UriKind.Absolute))
+                        {
+                            // If the URL is relative, prepend a base URL (adjust as needed)
+                            thumbnail = $"{thumbnail.TrimStart('/')}";
+                        }
+                    }
                 }
             }
 
-            return (generatedText, thumbnail);
+            // Convert response to HTML
+            var htmlResponse = $@"<!DOCTYPE html>
+<html lang=""vi"">
+<head>
+    <meta charset=""UTF-8"">
+    <meta name=""viewport"" content=""width=device-width, initial-scale=1.0"">
+    <title>Kết quả từ GearShop</title>
+    <script src=""https://cdn.tailwindcss.com""></script>
+</head>
+<body class=""bg-gray-100 font-sans"">
+    <div class=""container mx-auto p-6"">
+        <div class=""bg-white rounded-lg shadow-md p-6"">
+            <h1 class=""text-2xl font-bold mb-4 text-gray-800"">Kết quả tìm kiếm GearShop</h1>
+            {(thumbnail != null ? $@"<img src=""{thumbnail}"" alt=""Hình ảnh sản phẩm"" class=""w-full max-w-xs rounded-lg mb-4 object-cover"" onerror=""this.style.display='none'"">" : "<p class=\"text-gray-700\">Không có hình ảnh sản phẩm.</p>")}
+            <div class=""text-gray-700 whitespace-pre-wrap"">{System.Web.HttpUtility.HtmlEncode(generatedText)}</div>
+        </div>
+    </div>
+</body>
+</html>";
+
+            return (htmlResponse, thumbnail);
         }
 
-        private async Task<(string, string?)> GetProductInfoFromFilter(JsonElement json)
+        private async Task<(string HtmlResponse, string? ImageUrl)> GetProductInfoFromFilter(JsonElement json)
         {
             var query = _dbContext.products
                 .Include(p => p.Brand)
@@ -198,11 +256,58 @@ Câu hỏi: {prompt}";
             }
 
             var result = await query.FirstOrDefaultAsync();
-            if (result == null) return ("Không tìm thấy sản phẩm phù hợp.", null);
+            if (result == null)
+            {
+                var htmlResponse = $@"<!DOCTYPE html>
+<html lang=""vi"">
+<head>
+    <meta charset=""UTF-8"">
+    <meta name=""viewport"" content=""width=device-width, initial-scale=1.0"">
+    <title>Kết quả từ GearShop</title>
+    <script src=""https://cdn.tailwindcss.com""></script>
+</head>
+<body class=""bg-gray-100 font-sans"">
+    <div class=""container mx-auto p-6"">
+        <div class=""bg-white rounded-lg shadow-md p-6"">
+            <h1 class=""text-2xl font-bold mb-4 text-gray-800"">Kết quả tìm kiếm</h1>
+            <p class=""text-gray-700"">Không tìm thấy sản phẩm phù hợp.</p>
+        </div>
+    </div>
+</body>
+</html>";
+                return (htmlResponse, null);
+            }
 
             var image = result.Images.FirstOrDefault(i => i.Isthumbnail == 1)?.ImageUrl;
-            var response = $"Sản phẩm: {result.ProductName}\nGiá: {result.Price:C}\nThương hiệu: {result.Brand.BrandName}\nLoại: {result.ProductType.TypeName}";
-            return (response, image);
+            if (!string.IsNullOrEmpty(image) && !Uri.IsWellFormedUriString(image, UriKind.Absolute))
+            {
+                // If the URL is relative, prepend a base URL (adjust as needed)
+                image = $"https://your-base-url/{image.TrimStart('/')}";
+            }
+
+            var htmlContent = $@"<!DOCTYPE html>
+<html lang=""vi"">
+<head>
+    <meta charset=""UTF-8"">
+    <meta name=""viewport"" content=""width=device-width, initial-scale=1.0"">
+    <title>Kết quả từ GearShop</title>
+    <script src=""https://cdn.tailwindcss.com""></script>
+</head>
+<body class=""bg-gray-100 font-sans"">
+    <div class=""container mx-auto p-6"">
+        <div class=""bg-white rounded-lg shadow-md p-6"">
+            <h1 class=""text-2xl font-bold mb-4 text-gray-800"">Thông tin sản phẩm</h1>
+            {(image != null ? $@"<img src=""{image}"" alt=""{System.Web.HttpUtility.HtmlEncode(result.ProductName)}"" class=""w-full max-w-xs rounded-lg mb-4 object-cover"" onerror=""this.style.display='none'"">" : "<p class=\"text-gray-700\">Không có hình ảnh sản phẩm.</p>")}
+            <h2 class=""text-xl font-semibold text-gray-800"">{System.Web.HttpUtility.HtmlEncode(result.ProductName)}</h2>
+            <p class=""text-gray-700"">Giá: {result.Price:C}</p>
+            <p class=""text-gray-700"">Thương hiệu: {System.Web.HttpUtility.HtmlEncode(result.Brand.BrandName)}</p>
+            <p class=""text-gray-700"">Loại: {System.Web.HttpUtility.HtmlEncode(result.ProductType.TypeName)}</p>
+        </div>
+    </div>
+</body>
+</html>";
+
+            return (htmlContent, image);
         }
 
         private async Task<JsonElement?> ExtractFilterFromPromptAsync(string prompt)
