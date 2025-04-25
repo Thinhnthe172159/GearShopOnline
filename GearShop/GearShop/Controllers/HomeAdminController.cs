@@ -55,6 +55,11 @@ namespace GearShop.Controllers
             foreach (var user in users)
             {
                 var roles = await _userManager.GetRolesAsync(user);
+
+                // Bỏ qua người dùng có vai trò Admin
+                if (roles.Contains("Admin"))
+                    continue;
+
                 userRolesViewModel.Add(new UserRoleViewModel
                 {
                     UserId = user.Id,
@@ -97,12 +102,19 @@ namespace GearShop.Controllers
         // POST: HomeAdmin/ManageRoles/userId
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> ManageRoles(ManageRoleViewModel model, List<string> selectedRoles)
+        public async Task<IActionResult> ManageRoles(ManageRoleViewModel model, string selectedRoles)
         {
             var user = await _userManager.FindByIdAsync(model.UserId);
             if (user == null)
             {
                 return NotFound();
+            }
+
+            // Đảm bảo vai trò được chọn không phải là Admin
+            if (selectedRoles == "Admin")
+            {
+                TempData["ErrorMessage"] = "Không được phép gán vai trò Admin";
+                return RedirectToAction(nameof(UserRoles));
             }
 
             // Lấy tất cả role hiện tại của user
@@ -112,22 +124,66 @@ namespace GearShop.Controllers
             var result = await _userManager.RemoveFromRolesAsync(user, userRoles);
             if (!result.Succeeded)
             {
-                ModelState.AddModelError("", "Không thể xóa các role hiện tại");
+                ModelState.AddModelError("", "Không thể xóa các vai trò hiện tại");
                 return View(model);
             }
 
-            // Thêm các role được chọn
-            if (selectedRoles != null && selectedRoles.Count > 0)
+            // Thêm vai trò mới được chọn
+            if (!string.IsNullOrEmpty(selectedRoles))
             {
-                result = await _userManager.AddToRolesAsync(user, selectedRoles);
+                result = await _userManager.AddToRoleAsync(user, selectedRoles);
                 if (!result.Succeeded)
                 {
-                    ModelState.AddModelError("", "Không thể gán các role đã chọn");
+                    ModelState.AddModelError("", "Không thể gán vai trò đã chọn");
                     return View(model);
                 }
             }
 
+            TempData["SuccessMessage"] = "Đã cập nhật vai trò thành công";
             return RedirectToAction(nameof(UserRoles));
+        }
+
+        // POST: HomeAdmin/DeleteStaff
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteStaff(string userId)
+        {
+            if (string.IsNullOrEmpty(userId))
+            {
+                TempData["ErrorMessage"] = "ID người dùng không hợp lệ";
+                return RedirectToAction(nameof(StaffList));
+            }
+
+            var user = await _userManager.FindByIdAsync(userId);
+            if (user == null)
+            {
+                TempData["ErrorMessage"] = "Không tìm thấy người dùng";
+                return RedirectToAction(nameof(StaffList));
+            }
+
+            // Kiểm tra xem người dùng có phải là Staff không
+            var isStaff = await _userManager.IsInRoleAsync(user, "Staff");
+            if (!isStaff)
+            {
+                TempData["ErrorMessage"] = "Người dùng này không phải là Staff";
+                return RedirectToAction(nameof(StaffList));
+            }
+
+            // Xóa người dùng khỏi role Staff trước
+            await _userManager.RemoveFromRoleAsync(user, "Staff");
+
+            // Xóa người dùng
+            var result = await _userManager.DeleteAsync(user);
+            if (result.Succeeded)
+            {
+                TempData["SuccessMessage"] = "Đã xóa nhân viên thành công";
+            }
+            else
+            {
+                TempData["ErrorMessage"] = "Không thể xóa nhân viên: " + string.Join(", ", result.Errors.Select(e => e.Description));
+            }
+
+            return RedirectToAction(nameof(StaffList));
         }
     }
 }

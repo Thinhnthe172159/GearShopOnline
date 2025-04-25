@@ -29,15 +29,19 @@
             <div class="card-body">
                 <div asp-validation-summary="ModelOnly" class="text-danger"></div>
 
-                @foreach (var role in Model.AllRoles)
-                {
-                    <div class="form-check mb-2">
-                        <input type="checkbox" name="selectedRoles" value="@role"
-                               class="form-check-input" id="role_@role"
-                        @(Model.UserRoles.Contains(role) ? "checked" : "") />
-                        <label class="form-check-label" for="role_@role">@role</label>
-                    </div>
-                }
+                <div class="form-check mb-3">
+                    <input type="radio" name="selectedRoles" value="Staff"
+                           class="form-check-input" id="role_Staff"
+                    @(Model.UserRoles.Contains("Staff") ? "checked" : "") />
+                    <label class="form-check-label" for="role_Staff">Staff</label>
+                </div>
+
+                <div class="form-check mb-3">
+                    <input type="radio" name="selectedRoles" value="Customer"
+                           class="form-check-input" id="role_Customer"
+                    @(Model.UserRoles.Contains("Customer") ? "checked" : "") />
+                    <label class="form-check-label" for="role_Customer">Customer</label>
+                </div>
             </div>
             <div class="card-footer">
                 <button type="submit" class="btn btn-primary">Lưu thay đổi</button>
