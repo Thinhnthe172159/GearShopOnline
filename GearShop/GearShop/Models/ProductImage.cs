@@ -13,5 +13,12 @@ namespace GearShop.Models
         public int Isthumbnail { get; set; }
         [ForeignKey(nameof(ProductId))]
         public virtual Product Product { get; set; } = null!;
+
+        public override string ToString()
+        {
+            return $"Ảnh sản phẩm [Mã ảnh={Id}, Đường dẫn ảnh={ImageUrl}, Mã sản phẩm={ProductId}, " +
+                   $"Là ảnh đại diện={(Isthumbnail == 1 ? "Có" : "Không")}]";
+        }
+
     }
 }

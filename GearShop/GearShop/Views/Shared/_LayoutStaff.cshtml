@@ -58,11 +58,11 @@
 				</a>
 				<div class="d-flex align-items-center ms-4 mb-4">
 					<div class="position-relative">
-						<img class="rounded-circle" src="~/img/user.jpg" alt="" style="width: 40px; height: 40px;">
+						<img class="rounded-circle me-lg-2" src="~/img/user.jpg" alt="" style="width: 40px; height: 40px;">
 						<div class="bg-success rounded-circle border border-2 border-white position-absolute end-0 bottom-0 p-1"></div>
 					</div>
 					<div class="ms-3">
-						<h6 class="mb-0">Jhon Doe</h6>
+						<h6 class="mb-0">@(ApplicationUser != null ? ApplicationUser.FullName : "")</h6>
 						<span>Staff</span>
 					</div>
 				</div>
@@ -73,7 +73,9 @@
 					<a asp-action="Index" asp-controller="ProductStaff" class="nav-item nav-link @IsActive("ProductStaff")">
 						<i class="fa fa-laptop me-2"></i>Quản lý sản phẩm
 					</a>
-					<a href="#" class="nav-item nav-link"><i class="fa fa-th me-2"></i>Quản lý danh mục</a>
+					<a asp-action="Index" asp-controller="ProductTypesStaff" class="nav-item nav-link @IsActive("ProductTypesStaff")">
+						<i class="fa fa-th me-2"></i>Quản lý danh mục
+					</a>
 					<a href="#" class="nav-item nav-link"><i class="fa fa-tags me-2"></i>Quản lý thương hiệu</a>
 					<a href="#" class="nav-item nav-link"><i class="fa fa-shopping-cart me-2"></i>Quản lý đặt hàng</a>
 					<a href="#" class="nav-item nav-link"><i class="fa fa-user me-2"></i>Quản lý người dùng</a>
