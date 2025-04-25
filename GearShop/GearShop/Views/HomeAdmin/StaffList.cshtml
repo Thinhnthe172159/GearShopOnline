@@ -1,24 +1,48 @@
 ﻿@model IEnumerable<Microsoft.AspNetCore.Identity.IdentityUser>
-
 @{
     ViewData["Title"] = "Danh sách Staff";
 }
-
 <div class="container mt-4">
     <h3 class="mb-4">Danh sách nhân viên (Staff)</h3>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            @TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            @TempData["ErrorMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
     <table class="table table-bordered table-striped">
         <thead class="table-dark">
             <tr>
-                <th>Email</th>
-                <th>UserName</th>
+                <th class="text-dark">Email</th>
+                <th class="text-dark">UserName</th>
+                <th>Thao tác</th>
             </tr>
         </thead>
         <tbody>
             @foreach (var staff in Model)
             {
                 <tr>
-                    <td>@staff.Email</td>
-                    <td>@staff.UserName</td>
+                    <td class="text-dark">@staff.Email</td>
+                    <td class="text-dark">@staff.UserName</td>
+                    <td>
+                        <form asp-action="DeleteStaff" asp-controller="HomeAdmin" method="post" onsubmit="return confirm('Bạn có chắc chắn muốn xóa nhân viên này?');">
+                            <input type="hidden" name="userId" value="@staff.Id" />
+                            <button type="submit" class="btn btn-danger btn-sm">
+                                <i class="fa fa-trash"></i> Xóa
+                            </button>
+                        </form>
+                    </td>
                 </tr>
             }
         </tbody>
