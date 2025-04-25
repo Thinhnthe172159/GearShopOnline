@@ -1,19 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using GearShop.Data;
+using GearShop.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
-using GearShop.Data;
-using GearShop.Models;
-using Microsoft.AspNetCore.Hosting;
-using System.IO;
-using System.Drawing.Printing;
-using X.PagedList;
-using X.PagedList.Mvc.Core;
 using X.PagedList.Extensions;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace GearShop.Controllers
 {
@@ -32,16 +22,84 @@ namespace GearShop.Controllers
         }
 
         // GET: ProductStaff
-        public async Task<IActionResult> Index(int? page)
+        public async Task<IActionResult> Index(int? page, long? brandId, long? typeId, string sortOrder)
         {
             int pageNumber = page ?? 1;
 
-            var products = await _context.products
+            // Lưu các tham số để sử dụng trong View
+            ViewData["CurrentSort"] = sortOrder;
+            ViewData["CurrentPage"] = pageNumber;
+            ViewData["SelectedBrand"] = brandId;
+            ViewData["SelectedType"] = typeId;
+
+            // Load danh sách thương hiệu và loại sản phẩm cho combobox
+            ViewData["Brands"] = new SelectList(_context.brands, "Id", "BrandName");
+            ViewData["ProductTypes"] = new SelectList(_context.productTypes, "Id", "TypeName");
+
+            // Query cơ bản
+            var products = _context.products
                 .Include(p => p.Brand)
                 .Include(p => p.ProductType)
-                .OrderBy(p => p.Id).ToListAsync();
+                .AsQueryable();
 
-            var pagedProducts = products.ToPagedList(pageNumber, PageSize);
+            // Lọc theo thương hiệu
+            if (brandId.HasValue && brandId > 0)
+            {
+                products = products.Where(p => p.BrandId == brandId);
+            }
+
+            // Lọc theo loại sản phẩm
+            if (typeId.HasValue && typeId > 0)
+            {
+                products = products.Where(p => p.ProductTypeId == typeId);
+            }
+
+            // Sắp xếp
+            switch (sortOrder)
+            {
+                case "name":
+                    products = products.OrderBy(p => p.ProductName);
+                    break;
+                case "name_desc":
+                    products = products.OrderByDescending(p => p.ProductName);
+                    break;
+                case "quantity":
+                    products = products.OrderBy(p => p.Quantity);
+                    break;
+                case "quantity_desc":
+                    products = products.OrderByDescending(p => p.Quantity);
+                    break;
+                case "price":
+                    products = products.OrderBy(p => p.Price);
+                    break;
+                case "price_desc":
+                    products = products.OrderByDescending(p => p.Price);
+                    break;
+                case "brand":
+                    products = products.OrderBy(p => p.Brand.BrandName);
+                    break;
+                case "brand_desc":
+                    products = products.OrderByDescending(p => p.Brand.BrandName);
+                    break;
+                case "type":
+                    products = products.OrderBy(p => p.ProductType.TypeName);
+                    break;
+                case "type_desc":
+                    products = products.OrderByDescending(p => p.ProductType.TypeName);
+                    break;
+                case "status":
+                    products = products.OrderBy(p => p.Status);
+                    break;
+                case "status_desc":
+                    products = products.OrderByDescending(p => p.Status);
+                    break;
+                default:
+                    products = products.OrderBy(p => p.Id);
+                    break;
+            }
+
+            var productList = await products.ToListAsync();
+            var pagedProducts = productList.ToPagedList(pageNumber, PageSize);
 
             return View(pagedProducts);
         }

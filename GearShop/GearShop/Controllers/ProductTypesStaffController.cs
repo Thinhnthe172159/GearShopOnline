@@ -25,15 +25,64 @@ namespace GearShop.Controllers
         }
 
         // GET: ProductTypesStaff
-        public async Task<IActionResult> Index(int? page)
+        public async Task<IActionResult> Index(int? page, string sortOrder)
         {
             int pageNumber = page ?? 1;
 
-            var productTypes = await _context.productTypes
-                .OrderBy(p => p.Id)
-                .ToListAsync();
+            // Store current sort order and page for View
+            ViewData["CurrentSort"] = sortOrder;
+            ViewData["CurrentPage"] = pageNumber;
 
-            var pagedProductTypes = productTypes.ToPagedList(pageNumber, PageSize);
+            // Query product types
+            var productTypes = _context.productTypes.AsQueryable();
+
+            // Apply sorting
+            switch (sortOrder)
+            {
+                case "name":
+                    productTypes = productTypes.OrderBy(pt => pt.TypeName);
+                    break;
+                case "name_desc":
+                    productTypes = productTypes.OrderByDescending(pt => pt.TypeName);
+                    break;
+                case "created_date":
+                    productTypes = productTypes.OrderBy(pt => pt.DateTime);
+                    break;
+                case "created_date_desc":
+                    productTypes = productTypes.OrderByDescending(pt => pt.DateTime);
+                    break;
+                case "created_by":
+                    productTypes = productTypes.OrderBy(pt => pt.CreatedBy);
+                    break;
+                case "created_by_desc":
+                    productTypes = productTypes.OrderByDescending(pt => pt.CreatedBy);
+                    break;
+                case "modified_date":
+                    productTypes = productTypes.OrderBy(pt => pt.ModifiedDate);
+                    break;
+                case "modified_date_desc":
+                    productTypes = productTypes.OrderByDescending(pt => pt.ModifiedDate);
+                    break;
+                case "modified_by":
+                    productTypes = productTypes.OrderBy(pt => pt.MofifiedBy);
+                    break;
+                case "modified_by_desc":
+                    productTypes = productTypes.OrderByDescending(pt => pt.MofifiedBy);
+                    break;
+                case "status":
+                    productTypes = productTypes.OrderBy(pt => pt.Status);
+                    break;
+                case "status_desc":
+                    productTypes = productTypes.OrderByDescending(pt => pt.Status);
+                    break;
+                default:
+                    productTypes = productTypes.OrderBy(pt => pt.Id);
+                    break;
+            }
+
+            // Execute query and apply pagination
+            var productTypeList = await productTypes.ToListAsync();
+            var pagedProductTypes = productTypeList.ToPagedList(pageNumber, PageSize);
 
             return View(pagedProductTypes);
         }
@@ -352,10 +401,25 @@ namespace GearShop.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var productType = await _context.productTypes.FindAsync(id);
-            if (productType != null)
+            var productType = await _context.productTypes
+                .Include(p => p.Products)
+                .Include(p => p.Brands)
+                .FirstOrDefaultAsync(p => p.Id == id);
+
+            if (productType == null)
             {
-                // Delete image if exists
+                return NotFound();
+            }
+
+            if (productType.Products.Any() || productType.Brands.Any())
+            {
+                TempData["ErrorMessage"] = "Không thể xóa danh mục vì vẫn còn sản phẩm hoặc thương hiệu liên kết.";
+                return RedirectToAction(nameof(Index));
+            }
+
+            try
+            {
+                // Xóa hình ảnh nếu tồn tại và không phải ảnh mặc định
                 if (!string.IsNullOrEmpty(productType.ImageUrl) && productType.ImageUrl != "/sourceimg/NoImage.jpg")
                 {
                     var imagePath = Path.Combine(_webHostEnvironment.WebRootPath, productType.ImageUrl.TrimStart('/'));
@@ -369,6 +433,10 @@ namespace GearShop.Controllers
                 await _context.SaveChangesAsync();
 
                 TempData["SuccessMessage"] = "Danh mục đã được xóa thành công!";
+            }
+            catch (Exception)
+            {
+                TempData["ErrorMessage"] = "Đã xảy ra lỗi khi xóa danh mục. Vui lòng thử lại.";
             }
 
             return RedirectToAction(nameof(Index));
