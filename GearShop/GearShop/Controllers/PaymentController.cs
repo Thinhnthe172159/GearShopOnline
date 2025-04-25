@@ -2,6 +2,7 @@
 using GearShop.Data;
 using GearShop.Models;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -9,11 +10,13 @@ public class PaymentController : Controller
 {
     private readonly IConfiguration _config;
     private readonly ApplicationDbContext _context;
+    private readonly UserManager<IdentityUser> _userManager;
 
-    public PaymentController(IConfiguration config, ApplicationDbContext context)
+    public PaymentController(IConfiguration config, ApplicationDbContext context, UserManager<IdentityUser> userManager)
     {
         _config = config;
         _context = context;
+        _userManager = userManager;
     }
 
     public IActionResult Index()
@@ -29,6 +32,19 @@ public class PaymentController : Controller
         {
             TempData["Noti"] = "Bạn chưa chọn sản phẩm nào để thanh toán!";
             return RedirectToAction(nameof(Index), "CustomerCarts", new { Id = userId });
+        }
+        var user = await _userManager.GetUserAsync(User);
+        if (user != null)
+        {
+            var Users = await _context.ApplicationUsers.FindAsync(user.Id);
+            if (Users != null)
+            {
+                if (string.IsNullOrEmpty(Users.City) || string.IsNullOrEmpty(Users.District) || string.IsNullOrEmpty(Users.Commune) || string.IsNullOrEmpty(Users.PhoneNumber))
+                {
+                    TempData["Noti"] = "Bạn chưa thêm thông tin về địa chỉ và liên lạc";
+                    return Redirect("/Identity/Account/Manage");
+                }
+            }
         }
 
         decimal amount = 0;
@@ -69,8 +85,8 @@ public class PaymentController : Controller
                 };
 
                 amount += order.SoldPrice;
-                _context.orders.Add(order);
-                _context.carts.Remove(itemCart);
+                //_context.orders.Add(order);
+                //_context.carts.Remove(itemCart);
             }
         }
 
