@@ -21,15 +21,64 @@ namespace GearShop.Controllers
         }
 
         // GET: BrandStaff
-        public async Task<IActionResult> Index(int? page)
+        public async Task<IActionResult> Index(int? page, string sortOrder)
         {
             int pageNumber = page ?? 1;
 
-            var brands = await _context.brands
-                .OrderBy(b => b.Id)
-                .ToListAsync();
+            // Store current sort order and page for View
+            ViewData["CurrentSort"] = sortOrder;
+            ViewData["CurrentPage"] = pageNumber;
 
-            var pagedBrands = brands.ToPagedList(pageNumber, PageSize);
+            // Query brands
+            var brands = _context.brands.AsQueryable();
+
+            // Apply sorting
+            switch (sortOrder)
+            {
+                case "name":
+                    brands = brands.OrderBy(b => b.BrandName);
+                    break;
+                case "name_desc":
+                    brands = brands.OrderByDescending(b => b.BrandName);
+                    break;
+                case "created_date":
+                    brands = brands.OrderBy(b => b.CreateDate);
+                    break;
+                case "created_date_desc":
+                    brands = brands.OrderByDescending(b => b.CreateDate);
+                    break;
+                case "created_by":
+                    brands = brands.OrderBy(b => b.CreatedBy);
+                    break;
+                case "created_by_desc":
+                    brands = brands.OrderByDescending(b => b.CreatedBy);
+                    break;
+                case "modified_date":
+                    brands = brands.OrderBy(b => b.ModifiedDate);
+                    break;
+                case "modified_date_desc":
+                    brands = brands.OrderByDescending(b => b.ModifiedDate);
+                    break;
+                case "modified_by":
+                    brands = brands.OrderBy(b => b.ModifiedBy);
+                    break;
+                case "modified_by_desc":
+                    brands = brands.OrderByDescending(b => b.ModifiedBy);
+                    break;
+                case "status":
+                    brands = brands.OrderBy(b => b.Status);
+                    break;
+                case "status_desc":
+                    brands = brands.OrderByDescending(b => b.Status);
+                    break;
+                default:
+                    brands = brands.OrderBy(b => b.Id);
+                    break;
+            }
+
+            // Execute query and apply pagination
+            var brandList = await brands.ToListAsync();
+            var pagedBrands = brandList.ToPagedList(pageNumber, PageSize);
 
             return View(pagedBrands);
         }

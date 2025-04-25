@@ -25,15 +25,64 @@ namespace GearShop.Controllers
         }
 
         // GET: ProductTypesStaff
-        public async Task<IActionResult> Index(int? page)
+        public async Task<IActionResult> Index(int? page, string sortOrder)
         {
             int pageNumber = page ?? 1;
 
-            var productTypes = await _context.productTypes
-                .OrderBy(p => p.Id)
-                .ToListAsync();
+            // Store current sort order and page for View
+            ViewData["CurrentSort"] = sortOrder;
+            ViewData["CurrentPage"] = pageNumber;
 
-            var pagedProductTypes = productTypes.ToPagedList(pageNumber, PageSize);
+            // Query product types
+            var productTypes = _context.productTypes.AsQueryable();
+
+            // Apply sorting
+            switch (sortOrder)
+            {
+                case "name":
+                    productTypes = productTypes.OrderBy(pt => pt.TypeName);
+                    break;
+                case "name_desc":
+                    productTypes = productTypes.OrderByDescending(pt => pt.TypeName);
+                    break;
+                case "created_date":
+                    productTypes = productTypes.OrderBy(pt => pt.DateTime);
+                    break;
+                case "created_date_desc":
+                    productTypes = productTypes.OrderByDescending(pt => pt.DateTime);
+                    break;
+                case "created_by":
+                    productTypes = productTypes.OrderBy(pt => pt.CreatedBy);
+                    break;
+                case "created_by_desc":
+                    productTypes = productTypes.OrderByDescending(pt => pt.CreatedBy);
+                    break;
+                case "modified_date":
+                    productTypes = productTypes.OrderBy(pt => pt.ModifiedDate);
+                    break;
+                case "modified_date_desc":
+                    productTypes = productTypes.OrderByDescending(pt => pt.ModifiedDate);
+                    break;
+                case "modified_by":
+                    productTypes = productTypes.OrderBy(pt => pt.MofifiedBy);
+                    break;
+                case "modified_by_desc":
+                    productTypes = productTypes.OrderByDescending(pt => pt.MofifiedBy);
+                    break;
+                case "status":
+                    productTypes = productTypes.OrderBy(pt => pt.Status);
+                    break;
+                case "status_desc":
+                    productTypes = productTypes.OrderByDescending(pt => pt.Status);
+                    break;
+                default:
+                    productTypes = productTypes.OrderBy(pt => pt.Id);
+                    break;
+            }
+
+            // Execute query and apply pagination
+            var productTypeList = await productTypes.ToListAsync();
+            var pagedProductTypes = productTypeList.ToPagedList(pageNumber, PageSize);
 
             return View(pagedProductTypes);
         }
