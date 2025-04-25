@@ -1,9 +1,9 @@
-﻿@model X.PagedList.IPagedList<GearShop.Models.ProductType>
+﻿@model X.PagedList.IPagedList<GearShop.Models.Brand>
 @using X.PagedList.Mvc.Core
 @using X.PagedList
 
 @{
-    ViewData["Title"] = "Quản lý danh mục";
+    ViewData["Title"] = "Quản lý Thương hiệu";
     Layout = "_LayoutStaff";
 }
 
@@ -12,7 +12,7 @@
         <div class="col-12">
             <div class="bg-light rounded h-100 p-4">
                 <div class="d-flex align-items-center justify-content-between mb-4">
-                    <h4 class="mb-0">Danh sách danh mục</h4>
+                    <h4 class="mb-0">Danh sách Thương hiệu</h4>
                     <a asp-action="Create" class="btn btn-primary">
                         <i class="fa fa-plus me-2"></i>Tạo mới
                     </a>
@@ -39,10 +39,9 @@
                         <thead class="table-light">
                             <tr>
                                 <th>Num</th>
-                                <th>Tên danh mục</th>
+                                <th>Tên thương hiệu</th>
                                 <th>Ngày tạo</th>
                                 <th>Người tạo</th>
-                                <th>Ảnh danh mục</th>
                                 <th>Ngày chỉnh sửa</th>
                                 <th>Người chỉnh sửa</th>
                                 <th>Trạng thái</th>
@@ -57,15 +56,13 @@
                             {
                                 <tr>
                                     <td>@index</td>
-                                    <td>@Html.DisplayFor(modelItem => item.TypeName)</td>
-                                    <td class="text-truncate" style="max-width: 200px;" title="@item.DateTime">
-                                        @item.DateTime
+                                    <td>@Html.DisplayFor(modelItem => item.BrandName)</td>
+                                    <td class="text-truncate" style="max-width: 200px;" title="@item.CreateDate">
+                                        @item.CreateDate
                                     </td>
                                     <td>@Html.DisplayFor(modelItem => item.CreatedBy)</td>
-                                    <td><img src="@item.ImageUrl" style="width: 100%; height: 100%; object-fit: cover;" /></td>
-                                    @* <td>@Html.DisplayFor(modelItem => item.ImageUrl)</td> *@
                                     <td>@Html.DisplayFor(modelItem => item.ModifiedDate)</td>
-                                    <td>@Html.DisplayFor(modelItem => item.MofifiedBy)</td>
+                                    <td>@Html.DisplayFor(modelItem => item.ModifiedBy)</td>
                                     <td>
                                         @if (item.Status == 1)
                                         {
