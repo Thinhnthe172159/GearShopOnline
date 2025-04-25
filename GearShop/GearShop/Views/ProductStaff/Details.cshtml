@@ -131,7 +131,7 @@
                         <!-- Description Section -->
                         <div class="border rounded p-3 mt-3">
                             <h6 class="fw-bold">Mô tả sản phẩm</h6>
-                            <p class="mb-0">@(string.IsNullOrEmpty(Model.Description) ? "Không có mô tả" : Model.Description)</p>
+                            <p id="des" class="mb-0">@(string.IsNullOrEmpty(Model.Description) ? "Không có mô tả" : Model.Description)</p>
                         </div>
 
                         <!-- Audit Information Section -->
@@ -168,3 +168,6 @@
         </div>
     </div>
 </div>
+<script>
+    document.getElementById("des").innerHTML = `@Html.Raw(Model.Description)`;
+</script>

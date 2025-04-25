@@ -39,12 +39,24 @@
                         <thead class="table-light">
                             <tr>
                                 <th>Num</th>
-                                <th>Tên thương hiệu</th>
-                                <th>Ngày tạo</th>
-                                <th>Người tạo</th>
-                                <th>Ngày chỉnh sửa</th>
-                                <th>Người chỉnh sửa</th>
-                                <th>Trạng thái</th>
+                                <th>
+                                    <a href="@Url.Action("Index", new { page = ViewData["CurrentPage"], sortOrder = ViewData["CurrentSort"]?.ToString() == "name" ? "name_desc" : "name" })">Tên thương hiệu</a>
+                                </th>
+                                <th>
+                                    <a href="@Url.Action("Index", new { page = ViewData["CurrentPage"], sortOrder = ViewData["CurrentSort"]?.ToString() == "created_date" ? "created_date_desc" : "created_date" })">Ngày tạo</a>
+                                </th>
+                                <th>
+                                    <a href="@Url.Action("Index", new { page = ViewData["CurrentPage"], sortOrder = ViewData["CurrentSort"]?.ToString() == "created_by" ? "created_by_desc" : "created_by" })">Người tạo</a>
+                                </th>
+                                <th>
+                                    <a href="@Url.Action("Index", new { page = ViewData["CurrentPage"], sortOrder = ViewData["CurrentSort"]?.ToString() == "modified_date" ? "modified_date_desc" : "modified_date" })">Ngày chỉnh sửa</a>
+                                </th>
+                                <th>
+                                    <a href="@Url.Action("Index", new { page = ViewData["CurrentPage"], sortOrder = ViewData["CurrentSort"]?.ToString() == "modified_by" ? "modified_by_desc" : "modified_by" })">Người chỉnh sửa</a>
+                                </th>
+                                <th>
+                                    <a href="@Url.Action("Index", new { page = ViewData["CurrentPage"], sortOrder = ViewData["CurrentSort"]?.ToString() == "status" ? "status_desc" : "status" })">Trạng thái</a>
+                                </th>
                                 <th>Thao tác</th>
                             </tr>
                         </thead>
@@ -90,11 +102,10 @@
                     </table>
                 </div>
 
-                @*<!-- Phân trang (nếu cần) -->*@
                 <div class="d-flex justify-content-center mt-3">
                     @Html.PagedListPager(
                              (IPagedList)Model,
-                             page => Url.Action("Index", new { page }),
+                             page => Url.Action("Index", new { page, sortOrder = ViewData["CurrentSort"] }),
                              new PagedListRenderOptions
                     {
                         LiElementClasses = new[] { "page-item" },
