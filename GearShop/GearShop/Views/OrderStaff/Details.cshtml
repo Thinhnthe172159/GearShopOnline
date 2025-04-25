@@ -1,0 +1,167 @@
+﻿@model GearShop.Models.Order
+
+@{
+    ViewData["Title"] = "Chi tiết đơn hàng";
+    Layout = "_LayoutStaff";
+}
+
+<div class="container-fluid pt-4 px-4">
+    <div class="row g-4">
+        <div class="col-12">
+            <div class="bg-light rounded h-100 p-4">
+                <div class="d-flex align-items-center justify-content-between mb-4">
+                    <h4 class="mb-0">Chi tiết Đơn hàng</h4>
+                    <div>
+                        <a asp-action="Edit" asp-route-id="@Model?.Id" class="btn btn-outline-primary me-2">
+                            <i class="fa fa-edit me-1"></i>Chỉnh sửa
+                        </a>
+                        <a asp-action="Index" class="btn btn-outline-secondary">
+                            <i class="fa fa-list me-1"></i>Quay lại danh sách
+                        </a>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <!-- Product Images Section -->
+                    <div class="col-md-4 mb-4">
+                        <div class="border rounded p-3 h-100">
+                            <h5 class="mb-3">Hình ảnh sản phẩm</h5>
+                            <div id="productImageCarousel" class="carousel slide" data-bs-ride="carousel">
+                                <div class="carousel-inner">
+                                    @if (Model.Product.Images != null && Model.Product.Images.Any())
+                                    {
+                                        bool isFirst = true;
+                                        foreach (var image in Model.Product.Images)
+                                        {
+                                            <div class="carousel-item @(isFirst ? "active" : "")">
+                                                <img src="@image.ImageUrl" class="d-block w-100" alt="@Model.Product.ProductName" onerror="this.src='/images/placeholder.jpg'">
+                                            </div>
+                                            isFirst = false;
+                                        }
+                                    }
+                                    else
+                                    {
+                                        <div class="carousel-item active">
+                                            <div class="d-flex align-items-center justify-content-center bg-light" style="height: 300px;">
+                                                <span class="text-muted">Không có hình ảnh</span>
+                                            </div>
+                                        </div>
+                                    }
+                                </div>
+                                @if (Model.Product.Images != null && Model.Product.Images.Count() > 1)
+                                {
+                                    <button class="carousel-control-prev" type="button" data-bs-target="#productImageCarousel" data-bs-slide="prev">
+                                        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                                        <span class="visually-hidden">Previous</span>
+                                    </button>
+                                    <button class="carousel-control-next" type="button" data-bs-target="#productImageCarousel" data-bs-slide="next">
+                                        <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                                        <span class="visually-hidden">Next</span>
+                                    </button>
+                                }
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Product Information Section -->
+                    <div class="col-md-8">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <div class="border rounded p-3 h-100">
+                                    <h6 class="fw-bold">Tên sản phẩm</h6>
+                                    <p class="mb-0">@Model.Product.ProductName</p>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="border rounded p-3 h-100">
+                                    <h6 class="fw-bold">Giá bán</h6>
+                                    <p class="mb-0 text-danger fw-bold">@string.Format("{0:N0}", Model.SoldPrice) đ</p>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="border rounded p-3 h-100">
+                                    <h6 class="fw-bold">Thương hiệu</h6>
+                                    <p class="mb-0">@(Model.Product.Brand?.BrandName ?? "Không có thông tin")</p>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="border rounded p-3 h-100">
+                                    <h6 class="fw-bold">Loại sản phẩm</h6>
+                                    <p class="mb-0">@(Model.Product.ProductType?.TypeName ?? "Không có thông tin")</p>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="border rounded p-3 h-100">
+                                    <h6 class="fw-bold">Số lượng</h6>
+                                    <p class="mb-0">@Model.Quantity</p>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="border rounded p-3 h-100">
+                                    <h6 class="fw-bold">Trạng thái</h6>
+                                    <p class="mb-0">
+                                        @switch (Model.Status)
+                                        {
+                                            case 0:
+                                                <span class="badge bg-danger">✖️ Đơn hàng bị hủy</span>
+                                                break;
+                                            case 1:
+                                                <span class="badge bg-warning">💳 Chờ thanh toán</span>
+                                                break;
+                                            case 2:
+                                                <span class="badge bg-info">🚛 Chờ giao hàng</span>
+                                                break;
+                                            case 3:
+                                                <span class="badge bg-primary">🚛 Đang vận chuyển</span>
+                                                break;
+                                            case 4:
+                                                <span class="badge bg-success">✔️ Đã nhận hàng</span>
+                                                break;
+                                            default:
+                                                <span class="badge bg-secondary">Không xác định</span>
+                                                break;
+                                        }
+                                    </p>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="border rounded p-3 h-100">
+                                    <h6 class="fw-bold">Ngày nhập hàng</h6>
+                                    <p class="mb-0">@Model.Product.InServiceDate.ToString("dd/MM/yyyy")</p>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="border rounded p-3 h-100">
+                                    <h6 class="fw-bold">Ngày mở bán</h6>
+                                    <p class="mb-0">@Model.Product.InStockDate.ToString("dd/MM/yyyy")</p>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="border rounded p-3 h-100">
+                                    <h6 class="fw-bold">Ngày tạo đơn</h6>
+                                    <p class="mb-0">@Model.CreateDate.ToString("dd/MM/yyyy HH:mm")</p>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="border rounded p-3 h-100">
+                                    <h6 class="fw-bold">Ngày nhận hàng</h6>
+                                    <p class="mb-0">@(Model.ReviceDate?.ToString("dd/MM/yyyy HH:mm") ?? "Chưa nhận hàng")</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Description Section -->
+                        <div class="border rounded p-3 mt-3">
+                            <h6 class="fw-bold">Mô tả sản phẩm</h6>
+                            <p id="des" class="mb-0">@(string.IsNullOrEmpty(Model.Product.Description) ? "Không có mô tả" : Model.Product.Description)</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.getElementById("des").innerHTML = `@Html.Raw(Model.Product.Description)`;
+</script>

@@ -1,0 +1,155 @@
+﻿@model GearShop.Models.Order
+
+@{
+    ViewData["Title"] = "Xóa đơn hàng";
+    Layout = "_LayoutStaff";
+}
+
+<div class="container-fluid pt-4 px-4">
+    <div class="row g-4">
+        <div class="col-12">
+            <div class="bg-light rounded h-100 p-4">
+                <div class="d-flex align-items-center justify-content-between mb-4">
+                    <h4 class="mb-0">Xác nhận xóa Đơn hàng</h4>
+                    <a asp-action="Index" class="btn btn-outline-secondary">
+                        <i class="fa fa-arrow-left me-1"></i>Quay lại danh sách
+                    </a>
+                </div>
+
+                <div class="alert alert-danger mb-4">
+                    <h5 class="alert-heading">Cảnh báo!</h5>
+                    <p class="mb-0">Bạn có chắc chắn muốn xóa đơn hàng này? Hành động này không thể hoàn tác.</p>
+                </div>
+
+                <div class="row">
+                    <!-- Product Basic Info -->
+                    <div class="col-md-4 mb-4">
+                        <div class="border rounded p-3 h-100">
+                            <h5 class="mb-3">Thông tin cơ bản</h5>
+                            <div class="mb-2">
+                                <h6 class="fw-bold">Tên sản phẩm</h6>
+                                <p>@Model.Product.ProductName</p>
+                            </div>
+                            <div class="mb-2">
+                                <h6 class="fw-bold">Giá bán</h6>
+                                <p class="text-danger fw-bold">@string.Format("{0:N0}", Model.SoldPrice) đ</p>
+                            </div>
+                            <div class="mb-2">
+                                <h6 class="fw-bold">Số lượng</h6>
+                                <p>@Model.Quantity</p>
+                            </div>
+                            <div>
+                                <h6 class="fw-bold">Trạng thái</h6>
+                                @switch (Model.Status)
+                                {
+                                    case 0:
+                                        <span class="badge bg-danger">✖️ Đơn hàng bị hủy</span>
+                                        break;
+                                    case 1:
+                                        <span class="badge bg-warning">💳 Chờ thanh toán</span>
+                                        break;
+                                    case 2:
+                                        <span class="badge bg-info">🚛 Chờ giao hàng</span>
+                                        break;
+                                    case 3:
+                                        <span class="badge bg-primary">🚛 Đang vận chuyển</span>
+                                        break;
+                                    case 4:
+                                        <span class="badge bg-success">✔️ Đã nhận hàng</span>
+                                        break;
+                                    default:
+                                        <span class="badge bg-secondary">Không xác định</span>
+                                        break;
+                                }
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Product Details -->
+                    <div class="col-md-8 mb-4">
+                        <div class="border rounded p-3 h-100">
+                            <h5 class="mb-3">Thông tin chi tiết</h5>
+                            <div class="row">
+                                <div class="col-md-6 mb-2">
+                                    <h6 class="fw-bold">Thương hiệu</h6>
+                                    <p>@(Model.Product.Brand?.BrandName ?? "Không có thông tin")</p>
+                                </div>
+                                <div class="col-md-6 mb-2">
+                                    <h6 class="fw-bold">Loại sản phẩm</h6>
+                                    <p>@(Model.Product.ProductType?.TypeName ?? "Không có thông tin")</p>
+                                </div>
+                                <div class="col-md-6 mb-2">
+                                    <h6 class="fw-bold">Ngày nhập hàng</h6>
+                                    <p>@Model.Product.InServiceDate.ToString("dd/MM/yyyy")</p>
+                                </div>
+                                <div class="col-md-6 mb-2">
+                                    <h6 class="fw-bold">Ngày mở bán</h6>
+                                    <p>@Model.Product.InStockDate.ToString("dd/MM/yyyy")</p>
+                                </div>
+                                <div class="col-md-6 mb-2">
+                                    <h6 class="fw-bold">Ngày tạo đơn</h6>
+                                    <p>@Model.CreateDate.ToString("dd/MM/yyyy HH:mm")</p>
+                                </div>
+                                <div class="col-md-6 mb-2">
+                                    <h6 class="fw-bold">Ngày nhận hàng</h6>
+                                    <p>@(Model.ReviceDate?.ToString("dd/MM/yyyy HH:mm") ?? "Chưa nhận hàng")</p>
+                                </div>
+                                <div class="col-12">
+                                    <h6 class="fw-bold">Mô tả</h6>
+                                    <p id="des">@(string.IsNullOrEmpty(Model.Product.Description) ? "Không có mô tả" : (Model.Product.Description.Length > 200 ? Model.Product.Description.Substring(0, 200) + "..." : Model.Product.Description))</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Product Images -->
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <div class="border rounded p-3">
+                            <h5 class="mb-3">Hình ảnh sản phẩm</h5>
+                            @if (Model.Product.Images != null && Model.Product.Images.Any())
+                            {
+                                <div class="row g-2">
+                                    @foreach (var image in Model.Product.Images.OrderBy(pi => pi.Id))
+                                    {
+                                        <div class="col-md-2 col-sm-4 col-6">
+                                            <div class="position-relative">
+                                                <img src="@image.ImageUrl" class="img-fluid rounded border" alt="@Model.Product.ProductName" style="max-height: 150px; object-fit: cover;" onerror="this.src='/images/placeholder.jpg'" />
+                                                @if (image.Isthumbnail == 1)
+                                                {
+                                                    <span class="position-absolute top-0 start-0 badge bg-primary">Ảnh đại diện</span>
+                                                }
+                                            </div>
+                                        </div>
+                                    }
+                                </div>
+                            }
+                            else
+                            {
+                                <p>Chưa có hình ảnh nào.</p>
+                            }
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Delete Form -->
+                <form asp-action="Delete" class="mt-4">
+                    <input type="hidden" asp-for="Id" />
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-danger">
+                            <i class="fa fa-trash me-1"></i>Xác nhận xóa
+                        </button>
+                        <a asp-action="Index" class="btn btn-outline-secondary">
+                            <i class="fa fa-times me-1"></i>Hủy
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.getElementById("des").innerHTML = `@Html.Raw(Model.Product.Description)`;
+</script>
