@@ -352,10 +352,25 @@ namespace GearShop.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var productType = await _context.productTypes.FindAsync(id);
-            if (productType != null)
+            var productType = await _context.productTypes
+                .Include(p => p.Products)
+                .Include(p => p.Brands)
+                .FirstOrDefaultAsync(p => p.Id == id);
+
+            if (productType == null)
             {
-                // Delete image if exists
+                return NotFound();
+            }
+
+            if (productType.Products.Any() || productType.Brands.Any())
+            {
+                TempData["ErrorMessage"] = "Không thể xóa danh mục vì vẫn còn sản phẩm hoặc thương hiệu liên kết.";
+                return RedirectToAction(nameof(Index));
+            }
+
+            try
+            {
+                // Xóa hình ảnh nếu tồn tại và không phải ảnh mặc định
                 if (!string.IsNullOrEmpty(productType.ImageUrl) && productType.ImageUrl != "/sourceimg/NoImage.jpg")
                 {
                     var imagePath = Path.Combine(_webHostEnvironment.WebRootPath, productType.ImageUrl.TrimStart('/'));
@@ -369,6 +384,10 @@ namespace GearShop.Controllers
                 await _context.SaveChangesAsync();
 
                 TempData["SuccessMessage"] = "Danh mục đã được xóa thành công!";
+            }
+            catch (Exception)
+            {
+                TempData["ErrorMessage"] = "Đã xảy ra lỗi khi xóa danh mục. Vui lòng thử lại.";
             }
 
             return RedirectToAction(nameof(Index));
