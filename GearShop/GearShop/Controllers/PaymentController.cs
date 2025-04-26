@@ -85,8 +85,8 @@ public class PaymentController : Controller
                 };
 
                 amount += order.SoldPrice;
-                //_context.orders.Add(order);
-                //_context.carts.Remove(itemCart);
+                _context.orders.Add(order);
+                _context.carts.Remove(itemCart);
             }
         }
 
