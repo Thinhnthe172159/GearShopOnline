@@ -53,7 +53,7 @@
                             </tr>
                             <tr>
                                 <th>Số tiền</th>
-                                <td>@string.Format("{0:N0} VNĐ", int.Parse(Context.Request.Query["vnp_Amount"]+"") / 100)</td>
+                                <td>@string.Format("{0:N0} VNĐ", long.Parse(Context.Request.Query["vnp_Amount"]+"") / 100)</td>
                             </tr>
                             <tr>
                                 <th>Thời gian</th>
