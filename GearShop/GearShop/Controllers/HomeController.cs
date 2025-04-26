@@ -43,7 +43,7 @@ namespace GearShop.Controllers
                 }
             }
 
-            ViewBag.productTypeList = await _context.productTypes.Include(a => a.Products).Where(a => a.Status == 1).ToListAsync();
+            ViewBag.productTypeList = await _context.productTypes.Include(a => a.Products.Where(a => a.Status == 1)).Where(a => a.Status == 1).ToListAsync();
             return View();
         }
 

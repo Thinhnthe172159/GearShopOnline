@@ -104,14 +104,14 @@
 		@foreach (var item in ViewBag.productTypeList)
 		{
 			<div class="col-lg-3 col-md-4 col-sm-6 pb-1">
-				<a class="text-decoration-none" href="">
+				<a class="text-decoration-none" asp-action="index" asp-controller="customerproducts" asp-route-typeId="@item.Id">
 					<div class="cat-item d-flex align-items-center mb-4">
 						<div class="overflow-hidden" style="width: 100px; height: 100px;">
 							<img class="img-fluid" src="@item.ImageUrl" alt="">
 						</div>
 						<div class="flex-fill pl-3">
 							<h6>@item.TypeName</h6>
-							<small class="text-body">100 Products</small>
+							<small class="text-body">@item.Products.Count sản phẩm</small>
 						</div>
 					</div>
 				</a>
