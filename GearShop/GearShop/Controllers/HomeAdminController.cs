@@ -3,6 +3,7 @@ using GearShop.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace GearShop.Controllers
 {
@@ -184,6 +185,92 @@ namespace GearShop.Controllers
             }
 
             return RedirectToAction(nameof(StaffList));
+        }
+        // Trong HomeAdminController.cs
+        public async Task<IActionResult> RevenueStatistics(string period = "day")
+        {
+            var today = DateTime.Today;
+            var stats = new RevenueStatisticsViewModel();
+
+            // Lấy dữ liệu sản phẩm bán chạy/ít nhất - chỉ tính đơn hàng đã nhận (Status = 4)
+            var productStats = await _context.orders
+                .Where(o => o.Status == 4) // Chỉ tính đơn hàng đã nhận
+                .GroupBy(o => new { o.ProductId, ProductName = o.Product.ProductName })
+                .Select(g => new ProductStatisticsViewModel
+                {
+                    ProductId = g.Key.ProductId,
+                    ProductName = g.Key.ProductName,
+                    TotalQuantity = g.Sum(o => o.Quantity),
+                    TotalRevenue = g.Sum(o => o.SoldPrice * o.Quantity)
+                })
+                .ToListAsync();
+
+            stats.BestSellingProducts = productStats.OrderByDescending(p => p.TotalQuantity).Take(5).ToList();
+            stats.WorstSellingProducts = productStats.OrderBy(p => p.TotalQuantity).Take(5).ToList();
+
+            // Doanh thu theo ngày/tháng/năm
+            switch (period.ToLower())
+            {
+                case "month":
+                    var firstDayOfMonth = new DateTime(today.Year, today.Month, 1);
+                    var lastDayOfMonth = firstDayOfMonth.AddMonths(1).AddDays(-1);
+
+                    stats.Period = "Tháng " + today.Month + "/" + today.Year;
+                    stats.DailyRevenues = await GetDailyRevenues(firstDayOfMonth, lastDayOfMonth);
+                    break;
+
+                case "year":
+                    var firstDayOfYear = new DateTime(today.Year, 1, 1);
+                    var lastDayOfYear = new DateTime(today.Year, 12, 31);
+
+                    stats.Period = "Năm " + today.Year;
+                    stats.MonthlyRevenues = await GetMonthlyRevenues(today.Year);
+                    break;
+
+                default: // day
+                    stats.Period = "Ngày " + today.ToString("dd/MM/yyyy");
+                    stats.DailyRevenue = await _context.orders
+                        .Where(o => o.Status == 4 && o.CreateDate.Date == today)
+                        .SumAsync(o => o.SoldPrice * o.Quantity);
+                    stats.DailyOrderCount = await _context.orders
+                        .Where(o => o.Status == 4 && o.CreateDate.Date == today)
+                        .CountAsync();
+                    break;
+            }
+
+            ViewBag.SelectedPeriod = period;
+            return View(stats);
+        }
+
+        private async Task<List<DailyRevenueViewModel>> GetDailyRevenues(DateTime startDate, DateTime endDate)
+        {
+            return await _context.orders
+                .Where(o => o.Status == 4 && o.CreateDate.Date >= startDate.Date && o.CreateDate.Date <= endDate.Date)
+                .GroupBy(o => o.CreateDate.Date)
+                .Select(g => new DailyRevenueViewModel
+                {
+                    Date = g.Key,
+                    TotalOrders = g.Count(),
+                    TotalRevenue = g.Sum(o => o.SoldPrice * o.Quantity)
+                })
+                .OrderBy(x => x.Date)
+                .ToListAsync();
+        }
+
+        private async Task<List<MonthlyRevenueViewModel>> GetMonthlyRevenues(int year)
+        {
+            return await _context.orders
+                .Where(o => o.Status == 4 && o.CreateDate.Year == year)
+                .GroupBy(o => new { Month = o.CreateDate.Month, Year = o.CreateDate.Year })
+                .Select(g => new MonthlyRevenueViewModel
+                {
+                    Month = g.Key.Month,
+                    Year = g.Key.Year,
+                    TotalOrders = g.Count(),
+                    TotalRevenue = g.Sum(o => o.SoldPrice * o.Quantity)
+                })
+                .OrderBy(x => x.Month)
+                .ToListAsync();
         }
     }
 }
