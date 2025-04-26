@@ -29,8 +29,9 @@ namespace GearShop.Controllers
         //}
 
 
-        public async Task<IActionResult> Index(string? search, List<int?> brandId, List<int?> typeId, decimal priceFrom, decimal priceTo, int page = 1, int size = 12)
+        public async Task<IActionResult> Index(string? search, List<int?> brandId, List<int?> typeId, int choice = 0, int page = 1, int size = 12)
         {
+            var priceSelect = new SelectedPrice();
             var productRresults = _context.products.Include(a => a.Brand).Include(p => p.ProductType).Include(a => a.Images).Where(a => a.Status == 1).AsQueryable();
             if (!string.IsNullOrEmpty(search))
             {
@@ -44,13 +45,20 @@ namespace GearShop.Controllers
             {
                 productRresults = productRresults.Where(p => typeId.Contains(p.ProductTypeId));
             }
-            if (priceFrom != 0)
+            if (choice != 0)
             {
-                productRresults = productRresults.Where(p => p.Price >= priceFrom);
-            }
-            if (priceTo != 0)
-            {
-                productRresults = productRresults.Where(p => p.Price <= priceTo);
+                priceSelect = priceSelect.getAllFilter().FirstOrDefault(a => a.Choice == choice);
+                if (priceSelect != null)
+                {
+                    if (priceSelect?.PriceMin != 0)
+                    {
+                        productRresults = productRresults.Where(p => p.Price >= priceSelect.PriceMin);
+                    }
+                    if (priceSelect?.PriceMax != 0)
+                    {
+                        productRresults = productRresults.Where(p => p.Price <= priceSelect.PriceMax);
+                    }
+                }
             }
             ViewBag.CurrentFilter = new
             {
@@ -59,10 +67,10 @@ namespace GearShop.Controllers
                 typeId = typeId,
                 page = page,
                 size = size,
-                priceFrom = priceFrom,
-                priceTo = priceTo
+                choice = choice,
             };
             ViewBag.CountAll = _context.products.Where(a => a.Status == 1).Count();
+            ViewBag.priceSelected = priceSelect?.getAllFilter().ToList();
             ViewBag.BrandsList = await _context.brands.Include(a => a.Products.Where(a => a.Status == 1)).Where(a => a.Status == 1).ToListAsync();
             ViewBag.ProductTypes = await _context.productTypes.Include(a => a.Products.Where(a => a.Status == 1)).Where(a => a.Status == 1).ToListAsync();
 

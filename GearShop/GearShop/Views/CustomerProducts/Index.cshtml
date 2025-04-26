@@ -10,49 +10,20 @@
 <div class="container-fluid">
 	<div class="row px-xl-5">
 		<!-- Shop Sidebar Start -->
-		<form class="col-lg-3 col-md-4">
+		<form class="col-lg-3 col-md-4" asp-action="Index">
+			<button class="btn" type="reset"><i class="fa fa-filter"></i>Đặt lại lọc</button>
 			<!-- Price Start -->
 			<h5 class="section-title position-relative text-uppercase mb-3"><span class="bg-secondary pr-3">Tìm theo giá</span></h5>
 			<div class="bg-light p-4 mb-30">
-				<div class="custom-control custom-checkbox d-flex align-items-center justify-content-between mb-3">
-					<input style="height:20px;width:20px" type="radio" value="0" name="priceSelected">
-					<label for="price-1">Tất cả </label>
+				@foreach (var item in ViewBag.priceSelected)
+				{
+					<div class="custom-control custom-checkbox d-flex align-items-center justify-content-between mb-3">
+						<input style="height:20px;width:20px" type="radio" value="@item.Choice" name="choice" @(ViewBag.CurrentFilter.choice == item.Choice ? "checked" : "") onclick="submit()">
+						<label for="price-1">@item.Name</label>
 
-				</div>
-				<div class="custom-control custom-checkbox d-flex align-items-center justify-content-between mb-3">
-					<input style="height:20px;width:20px" type="radio" value="1" name="priceSelected">
-					<label for="price-1">dưới 1 triệu</label>
+					</div>
+				}
 
-				</div>
-				<div class="custom-control custom-checkbox d-flex align-items-center justify-content-between mb-3">
-					<input style="height:20px;width:20px" type="radio" value="2" name="priceSelected">
-					<label class="" for="price-2">1 triệu -- 3 triệu</label>
-
-				</div>
-				<div class="custom-control custom-checkbox d-flex align-items-center justify-content-between mb-3">
-					<input style="height:20px;width:20px" type="radio" value="3" name="priceSelected">
-					<label class="" for="price-2">3 triệu -- 5 triệu</label>
-
-				</div>
-				<div class="custom-control custom-checkbox d-flex align-items-center justify-content-between mb-3">
-					<input style="height:20px;width:20px" type="radio" value="4" name="priceSelected">
-					<label class="" for="price-2">5 triệu -- 10 triệu</label>
-
-				</div>
-				<div class="custom-control custom-checkbox d-flex align-items-center justify-content-between mb-3">
-					<input style="height:20px;width:20px" type="radio" value="5" name="priceSelected">
-					<label class="" for="price-2">10 triệu -- 20 triệu</label>
-
-				</div>
-				<div class="custom-control custom-checkbox d-flex align-items-center justify-content-between mb-3">
-					<input style="height:20px;width:20px" type="radio" value="6" name="priceSelected">
-					<label class="" for="price-2">20 triệu -- 30 triệu</label>
-
-				</div>
-				<div class="custom-control custom-checkbox d-flex align-items-center justify-content-between mb-3">
-					<input style="height:20px;width:20px" type="radio" value="7" name="priceSelected">
-					<label class="" for="price-2">Trên 40 triệu</label>
-				</div>
 
 			</div>
 			<!-- Price End -->
@@ -66,9 +37,9 @@
 				</div>
 				@foreach (var item in (List<Brand>)ViewBag.BrandsList)
 				{
-					<div class="custom-control custom-checkbox d-flex align-items-center justify-content-between mb-3">
-						<input @(ViewBag.CurrentFilter.brandId.Contains(item.Id) ? "checked" : "") type="checkbox" name="BrandId" value="@item.Id" class="custom-control-input" id="color-all">
-						<label class="custom-control-label" for="price-all">@item.BrandName</label>
+					<div class="custom-control d-flex align-items-center justify-content-between mb-3">
+						<input style="height:20px;width:20px" @(ViewBag.CurrentFilter.brandId.Contains(item.Id) ? "checked" : "") type="checkbox" name="BrandId" value="@item.Id" onclick="submit()">
+						<label class="form-label" for="price-all">@item.BrandName</label>
 						<span class="badge border font-weight-normal">@item.Products.Count</span>
 					</div>
 				}
@@ -86,8 +57,8 @@
 				@foreach (var item in (List<ProductType>)ViewBag.ProductTypes)
 				{
 					<div class="custom-control custom-checkbox d-flex align-items-center justify-content-between mb-3">
-						<input @(ViewBag.CurrentFilter.typeId.Contains(item.Id) ? "checked" : "") type="checkbox" class="custom-control-input" value="@item.Id" name="typeId" id="size-all">
-						<label class="custom-control-label" for="size-all">@item.TypeName</label>
+						<input style="height:20px;width:20px" @(ViewBag.CurrentFilter.typeId.Contains(item.Id) ? "checked" : "") type="checkbox" value="@item.Id" name="typeId" onclick="submit()">
+						<label class="form-lable" for="size-all">@item.TypeName</label>
 						<span class="badge border font-weight-normal">@item.Products.Count</span>
 					</div>
 				}
