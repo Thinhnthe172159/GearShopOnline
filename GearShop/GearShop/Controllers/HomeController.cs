@@ -42,8 +42,9 @@ namespace GearShop.Controllers
                     }
                 }
             }
-
-            ViewBag.productTypeList = await _context.productTypes.Include(a => a.Products).Where(a => a.Status == 1).ToListAsync();
+            ViewBag.Feartureproduct = await _context.products.Include(a => a.Orders).Include(a => a.Images).OrderByDescending(a => a.Orders.Count()).Take(8).ToListAsync();
+            ViewBag.Recentproduct = await _context.products.Include(a => a.Images).OrderByDescending(a => a.CreatedDate).Take(8).ToListAsync();
+            ViewBag.productTypeList = await _context.productTypes.Include(a => a.Products.Where(a => a.Status == 1)).Where(a => a.Status == 1).ToListAsync();
             return View();
         }
 
