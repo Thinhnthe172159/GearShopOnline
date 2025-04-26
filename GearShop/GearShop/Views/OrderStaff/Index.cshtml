@@ -1,0 +1,133 @@
+﻿@model X.PagedList.IPagedList<GearShop.Models.Order>
+@using X.PagedList.Mvc.Core
+@using X.PagedList
+@using Microsoft.AspNetCore.Mvc.Rendering
+
+@{
+    ViewData["Title"] = "Quản lý đơn hàng";
+    Layout = "_LayoutStaff";
+}
+
+<div class="container-fluid pt-4 px-4">
+    <div class="row g-4">
+        <div class="col-12">
+            <div class="bg-light rounded h-100 p-4">
+                <div class="d-flex align-items-center justify-content-between mb-4">
+                    <h4 class="mb-0">Danh sách đơn hàng</h4>
+                    <div class="d-flex align-items-center">
+                        <div class="me-2">
+                            <select id="statusFilter" class="form-select" style="width: 200px;">
+                                <option value="">Tất cả trạng thái</option>
+                                @foreach (var status in (SelectList)ViewData["OrderStatus"])
+                                {
+                                    if (ViewData["SelectedStatus"]?.ToString() == status.Value)
+                                    {
+                                        <option value="@status.Value" selected>@status.Text</option>
+                                    }
+                                    else
+                                    {
+                                        <option value="@status.Value">@status.Text</option>
+                                    }
+                                }
+                            </select>
+                        </div>
+                        <a asp-action="Create" class="btn btn-primary">
+                            <i class="fa fa-plus me-2"></i>Tạo mới
+                        </a>
+                    </div>
+                </div>
+
+                @if (TempData["SuccessMessage"] != null)
+                {
+                    <div class="alert alert-success alert-dismissible fade show" role="alert">
+                        @TempData["SuccessMessage"]
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                }
+
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Num</th>
+                                <th>
+                                    <a href="@Url.Action("Index", new { page = ViewData["CurrentPage"], brandId = ViewData["SelectedBrand"], typeId = ViewData["SelectedType"], sortOrder = ViewData["CurrentSort"]?.ToString() == "code" ? "code_desc" : "code" })">Mã đơn</a>
+                                </th>
+                                <th>
+                                    <a href="@Url.Action("Index", new { page = ViewData["CurrentPage"], brandId = ViewData["SelectedBrand"], typeId = ViewData["SelectedType"], sortOrder = ViewData["CurrentSort"]?.ToString() == "product" ? "product_desc" : "product" })">Sản phẩm</a>
+                                </th>
+                                <th>
+                                    <a href="@Url.Action("Index", new { page = ViewData["CurrentPage"], brandId = ViewData["SelectedBrand"], typeId = ViewData["SelectedType"], sortOrder = ViewData["CurrentSort"]?.ToString() == "quantity" ? "quantity_desc" : "quantity" })">Số lượng</a>
+                                </th>
+                                <th>
+                                    <a href="@Url.Action("Index", new { page = ViewData["CurrentPage"], brandId = ViewData["SelectedBrand"], typeId = ViewData["SelectedType"], sortOrder = ViewData["CurrentSort"]?.ToString() == "price" ? "price_desc" : "price" })">Giá bán</a>
+                                </th>
+                                <th>
+                                    <a href="@Url.Action("Index", new { page = ViewData["CurrentPage"], brandId = ViewData["SelectedBrand"], typeId = ViewData["SelectedType"], sortOrder = ViewData["CurrentSort"]?.ToString() == "customer" ? "customer_desc" : "customer" })">Khách hàng</a>
+                                </th>
+                                <th>
+                                    <a href="@Url.Action("Index", new { page = ViewData["CurrentPage"], brandId = ViewData["SelectedBrand"], typeId = ViewData["SelectedType"], sortOrder = ViewData["CurrentSort"]?.ToString() == "status" ? "status_desc" : "status" })">Trạng thái</a>
+                                </th>
+                                <th>Thao tác</th>
+                            </tr>
+                        </thead>
+                        @{
+                            var index = (Model.PageNumber - 1) * Model.PageSize + 1;
+                            var orderStatusList = new GearShop.Models.OrderStatus().GetAllStatus();
+                        }
+                        <tbody>
+                            @foreach (var item in Model)
+                            {
+                                <tr>
+                                    <td>@index</td>
+                                    <td>@Html.DisplayFor(modelItem => item.OrderCode)</td>
+                                    <td>@Html.DisplayFor(modelItem => item.Product.ProductName)</td>
+                                    <td>@Html.DisplayFor(modelItem => item.Quantity)</td>
+                                    <td>@item.SoldPrice.ToString("C")</td>
+                                    <td>@Html.DisplayFor(modelItem => item.ApplicationUser.UserName)</td>
+                                    <td>@orderStatusList.FirstOrDefault(s => s.Id == item.Status)?.Status</td>
+                                    <td>
+                                        <div class="btn-group" role="group">
+                                            <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-warning">
+                                                <i class="fa fa-edit"></i>
+                                            </a>
+                                            <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-info">
+                                                <i class="fa fa-eye"></i>
+                                            </a>
+                                            <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-sm btn-danger">
+                                                <i class="fa fa-trash"></i>
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                                index++;
+                            }
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="d-flex justify-content-center mt-3">
+                    @Html.PagedListPager(
+                             (IPagedList)Model,
+                             page => Url.Action("Index", new { page, status = ViewData["SelectedStatus"], sortOrder = ViewData["CurrentSort"] }),
+                             new PagedListRenderOptions
+                    {
+                        LiElementClasses = new[] { "page-item" },
+                        PageClasses = new[] { "page-link" },
+                        UlElementClasses = new[] { "pagination" },
+                        ActiveLiElementClass = "active"
+                    }
+                             )
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.getElementById('statusFilter').addEventListener('change', function () {
+            window.location.href = '@Url.Action("Index")' + '?status=' + this.value + '&sortOrder=@ViewData["CurrentSort"]';
+        });
+    </script>
+}

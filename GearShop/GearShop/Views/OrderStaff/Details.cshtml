@@ -1,6 +1,7 @@
-﻿@model GearShop.Models.Product
+﻿@model GearShop.Models.Order
+
 @{
-    ViewData["Title"] = "Chi tiết sản phẩm";
+    ViewData["Title"] = "Chi tiết đơn hàng";
     Layout = "_LayoutStaff";
 }
 
@@ -9,7 +10,7 @@
         <div class="col-12">
             <div class="bg-light rounded h-100 p-4">
                 <div class="d-flex align-items-center justify-content-between mb-4">
-                    <h4 class="mb-0">Chi tiết sản phẩm</h4>
+                    <h4 class="mb-0">Chi tiết Đơn hàng</h4>
                     <div>
                         <a asp-action="Edit" asp-route-id="@Model?.Id" class="btn btn-outline-primary me-2">
                             <i class="fa fa-edit me-1"></i>Chỉnh sửa
@@ -27,13 +28,13 @@
                             <h5 class="mb-3">Hình ảnh sản phẩm</h5>
                             <div id="productImageCarousel" class="carousel slide" data-bs-ride="carousel">
                                 <div class="carousel-inner">
-                                    @if (Model.Images != null && Model.Images.Any())
+                                    @if (Model.Product.Images != null && Model.Product.Images.Any())
                                     {
                                         bool isFirst = true;
-                                        foreach (var image in Model.Images)
+                                        foreach (var image in Model.Product.Images)
                                         {
                                             <div class="carousel-item @(isFirst ? "active" : "")">
-                                                <img src="@image.ImageUrl" class="d-block w-100" alt="@Model.ProductName">
+                                                <img src="@image.ImageUrl" class="d-block w-100" alt="@Model.Product.ProductName" onerror="this.src='/images/placeholder.jpg'">
                                             </div>
                                             isFirst = false;
                                         }
@@ -47,7 +48,7 @@
                                         </div>
                                     }
                                 </div>
-                                @if (Model.Images != null && Model.Images.Count() > 1)
+                                @if (Model.Product.Images != null && Model.Product.Images.Count() > 1)
                                 {
                                     <button class="carousel-control-prev" type="button" data-bs-target="#productImageCarousel" data-bs-slide="prev">
                                         <span class="carousel-control-prev-icon" aria-hidden="true"></span>
@@ -68,25 +69,25 @@
                             <div class="col-md-6">
                                 <div class="border rounded p-3 h-100">
                                     <h6 class="fw-bold">Tên sản phẩm</h6>
-                                    <p class="mb-0">@Model.ProductName</p>
+                                    <p class="mb-0">@Model.Product.ProductName</p>
                                 </div>
                             </div>
                             <div class="col-md-6">
                                 <div class="border rounded p-3 h-100">
                                     <h6 class="fw-bold">Giá bán</h6>
-                                    <p class="mb-0 text-danger fw-bold">@string.Format("{0:N0}", Model.Price) đ</p>
+                                    <p class="mb-0 text-danger fw-bold">@string.Format("{0:N0}", Model.SoldPrice) đ</p>
                                 </div>
                             </div>
                             <div class="col-md-6">
                                 <div class="border rounded p-3 h-100">
                                     <h6 class="fw-bold">Thương hiệu</h6>
-                                    <p class="mb-0">@(Model.Brand?.BrandName ?? "Không có thông tin")</p>
+                                    <p class="mb-0">@(Model.Product.Brand?.BrandName ?? "Không có thông tin")</p>
                                 </div>
                             </div>
                             <div class="col-md-6">
                                 <div class="border rounded p-3 h-100">
                                     <h6 class="fw-bold">Loại sản phẩm</h6>
-                                    <p class="mb-0">@(Model.ProductType?.TypeName ?? "Không có thông tin")</p>
+                                    <p class="mb-0">@(Model.Product.ProductType?.TypeName ?? "Không có thông tin")</p>
                                 </div>
                             </div>
                             <div class="col-md-6">
@@ -99,17 +100,26 @@
                                 <div class="border rounded p-3 h-100">
                                     <h6 class="fw-bold">Trạng thái</h6>
                                     <p class="mb-0">
-                                        @if (Model.Status == 1)
+                                        @switch (Model.Status)
                                         {
-                                            <span class="badge bg-success">Đang bán</span>
-                                        }
-                                        else if (Model.Status == 0)
-                                        {
-                                            <span class="badge bg-danger">Ngừng bán</span>
-                                        }
-                                        else
-                                        {
-                                            <span class="badge bg-secondary">@Model.Status</span>
+                                            case 0:
+                                                <span class="badge bg-danger">✖️ Đơn hàng bị hủy</span>
+                                                break;
+                                            case 1:
+                                                <span class="badge bg-warning">💳 Chờ thanh toán</span>
+                                                break;
+                                            case 2:
+                                                <span class="badge bg-info">🚛 Chờ giao hàng</span>
+                                                break;
+                                            case 3:
+                                                <span class="badge bg-primary">🚛 Đang vận chuyển</span>
+                                                break;
+                                            case 4:
+                                                <span class="badge bg-success">✔️ Đã nhận hàng</span>
+                                                break;
+                                            default:
+                                                <span class="badge bg-secondary">Không xác định</span>
+                                                break;
                                         }
                                     </p>
                                 </div>
@@ -117,13 +127,25 @@
                             <div class="col-md-6">
                                 <div class="border rounded p-3 h-100">
                                     <h6 class="fw-bold">Ngày nhập hàng</h6>
-                                    <p class="mb-0">@Model.InServiceDate.ToString("dd/MM/yyyy")</p>
+                                    <p class="mb-0">@Model.Product.InServiceDate.ToString("dd/MM/yyyy")</p>
                                 </div>
                             </div>
                             <div class="col-md-6">
                                 <div class="border rounded p-3 h-100">
                                     <h6 class="fw-bold">Ngày mở bán</h6>
-                                    <p class="mb-0">@Model.InStockDate.ToString("dd/MM/yyyy")</p>
+                                    <p class="mb-0">@Model.Product.InStockDate.ToString("dd/MM/yyyy")</p>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="border rounded p-3 h-100">
+                                    <h6 class="fw-bold">Ngày tạo đơn</h6>
+                                    <p class="mb-0">@Model.CreateDate.ToString("dd/MM/yyyy HH:mm")</p>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="border rounded p-3 h-100">
+                                    <h6 class="fw-bold">Ngày nhận hàng</h6>
+                                    <p class="mb-0">@(Model.ReviceDate?.ToString("dd/MM/yyyy HH:mm") ?? "Chưa nhận hàng")</p>
                                 </div>
                             </div>
                         </div>
@@ -131,36 +153,7 @@
                         <!-- Description Section -->
                         <div class="border rounded p-3 mt-3">
                             <h6 class="fw-bold">Mô tả sản phẩm</h6>
-                            <p id="des" class="mb-0">@(string.IsNullOrEmpty(Model.Description) ? "Không có mô tả" : Model.Description)</p>
-                        </div>
-
-                        <!-- Audit Information Section -->
-                        <div class="border rounded p-3 mt-3">
-                            <h6 class="fw-bold mb-3">Thông tin hệ thống</h6>
-                            <div class="row g-2">
-                                <div class="col-md-6">
-                                    <small class="text-muted">Ngày tạo:</small>
-                                    <p class="mb-1">@Model.CreatedDate.ToString("dd/MM/yyyy HH:mm")</p>
-                                </div>
-                                <div class="col-md-6">
-                                    <small class="text-muted">Người tạo:</small>
-                                    <p class="mb-1">@Model.CreatedBy</p>
-                                </div>
-                                @if (Model.ModifiedDate.HasValue)
-                                {
-                                    <div class="col-md-6">
-                                        <small class="text-muted">Ngày cập nhật:</small>
-                                        <p class="mb-1">@Model.ModifiedDate?.ToString("dd/MM/yyyy HH:mm")</p>
-                                    </div>
-                                }
-                                @if (!string.IsNullOrEmpty(Model.ModifiedBy))
-                                {
-                                    <div class="col-md-6">
-                                        <small class="text-muted">Người cập nhật:</small>
-                                        <p class="mb-1">@Model.ModifiedBy</p>
-                                    </div>
-                                }
-                            </div>
+                            <p id="des" class="mb-0">@(string.IsNullOrEmpty(Model.Product.Description) ? "Không có mô tả" : Model.Product.Description)</p>
                         </div>
                     </div>
                 </div>
@@ -168,6 +161,7 @@
         </div>
     </div>
 </div>
+
 <script>
-    document.getElementById("des").innerHTML = `@Html.Raw(Model.Description)`;
+    document.getElementById("des").innerHTML = `@Html.Raw(Model.Product.Description)`;
 </script>
