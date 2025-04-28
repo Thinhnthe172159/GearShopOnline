@@ -7,9 +7,11 @@ using System;
 using System.IO;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Authorization;
 
 namespace GearShop.Controllers
 {
+    [Authorize(Roles = "Staff")]
     public class ProductTypesStaffController : Controller
     {
         private readonly ApplicationDbContext _context;

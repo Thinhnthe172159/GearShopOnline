@@ -5,9 +5,11 @@ using Microsoft.EntityFrameworkCore;
 using X.PagedList.Extensions;
 using System;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 
 namespace GearShop.Controllers
 {
+    [Authorize(Roles = "Staff")]
     public class BrandStaffController : Controller
     {
         private readonly ApplicationDbContext _context;
