@@ -8,6 +8,8 @@
 
 	<ItemGroup>
 		
+		<PackageReference Include="FreeSpire.XLS" Version="14.2.0" />
+		
 		<PackageReference Include="Google.Apis" Version="1.69.0" />
 		
 		<PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="8.0.15" />
