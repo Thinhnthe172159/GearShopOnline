@@ -17,6 +17,9 @@
                         <a asp-action="RevenueStatistics" asp-controller="HomeAdmin" asp-route-period="month" class="btn @(selectedPeriod == "month" ? "btn-primary" : "btn-light")">Theo tháng</a>
                         <a asp-action="RevenueStatistics" asp-controller="HomeAdmin" asp-route-period="year" class="btn @(selectedPeriod == "year" ? "btn-primary" : "btn-light")">Theo năm</a>
                     </div>
+                    <a asp-action="ExportRevenueStatistics" asp-controller="HomeAdmin" asp-route-period="@selectedPeriod" class="btn btn-success">
+                        <i class="fas fa-file-excel me-2"></i>Xuất Excel
+                    </a>
                 </div>
 
                 @if (selectedPeriod == "day")
