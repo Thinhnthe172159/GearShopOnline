@@ -29,20 +29,36 @@ namespace GearShop.Controllers
         //}
 
 
-        public IActionResult Index(string? search, int brandId, int typeId, int page = 1, int size = 12)
+        public async Task<IActionResult> Index(string? search, List<int?> brandId, List<int?> typeId, int choice = 0, int page = 1, int size = 12)
         {
-            var productRresults = _context.products.Include(a => a.Brand).Include(p => p.ProductType).Include(a => a.Images).AsQueryable();
+            var priceSelect = new SelectedPrice();
+            var productRresults = _context.products.Include(a => a.Brand).Include(p => p.ProductType).Include(a => a.Images).Where(a => a.Status == 1).AsQueryable();
             if (!string.IsNullOrEmpty(search))
             {
                 productRresults = productRresults.Where(p => p.ProductName.ToLower().Contains(search.ToLower()) || p.Brand.BrandName.ToLower().Contains(search.ToLower()));
             }
-            if (brandId != 0)
+            if (brandId.Count != 0)
             {
-                productRresults = productRresults.Where(p => p.BrandId == brandId);
+                productRresults = productRresults.Where(p => brandId.Contains(p.BrandId));
             }
-            if (typeId != 0)
+            if (typeId.Count != 0)
             {
-                productRresults = productRresults.Where(p => p.ProductTypeId == typeId);
+                productRresults = productRresults.Where(p => typeId.Contains(p.ProductTypeId));
+            }
+            if (choice != 0)
+            {
+                priceSelect = priceSelect.getAllFilter().FirstOrDefault(a => a.Choice == choice);
+                if (priceSelect != null)
+                {
+                    if (priceSelect?.PriceMin != 0)
+                    {
+                        productRresults = productRresults.Where(p => p.Price >= priceSelect.PriceMin);
+                    }
+                    if (priceSelect?.PriceMax != 0)
+                    {
+                        productRresults = productRresults.Where(p => p.Price <= priceSelect.PriceMax);
+                    }
+                }
             }
             ViewBag.CurrentFilter = new
             {
@@ -50,8 +66,13 @@ namespace GearShop.Controllers
                 brandId = brandId,
                 typeId = typeId,
                 page = page,
-                size = size
+                size = size,
+                choice = choice,
             };
+            ViewBag.CountAll = _context.products.Where(a => a.Status == 1).Count();
+            ViewBag.priceSelected = priceSelect?.getAllFilter().ToList();
+            ViewBag.BrandsList = await _context.brands.Include(a => a.Products.Where(a => a.Status == 1)).Where(a => a.Status == 1).ToListAsync();
+            ViewBag.ProductTypes = await _context.productTypes.Include(a => a.Products.Where(a => a.Status == 1)).Where(a => a.Status == 1).ToListAsync();
 
             return View(productRresults.ToPagedList(page, size));
         }

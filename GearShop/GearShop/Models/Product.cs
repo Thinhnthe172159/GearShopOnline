@@ -32,6 +32,7 @@ namespace GearShop.Models
         public virtual ProductType ProductType { get; set; } = null!;
         public virtual ICollection<ProductImage> Images { get; set; } = new List<ProductImage>();
         public virtual ICollection<Comment> Comments { get; set; } = new List<Comment>();
+        public virtual ICollection<Order> Orders { get; set; } = new List<Order>();
 
         public override string ToString()
         {

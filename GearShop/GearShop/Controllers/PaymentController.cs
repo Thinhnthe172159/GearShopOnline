@@ -84,9 +84,9 @@ public class PaymentController : Controller
                                 - ((discount / 100) * (itemCart.Product.Price * itemCart.Quantity))
                 };
 
-                amount += order.SoldPrice;
-                //_context.orders.Add(order);
-                //_context.carts.Remove(itemCart);
+                amount += (long)order.SoldPrice;
+                _context.orders.Add(order);
+                _context.carts.Remove(itemCart);
             }
         }
 
@@ -101,7 +101,7 @@ public class PaymentController : Controller
         pay.AddRequestData("vnp_Version", "2.1.0");
         pay.AddRequestData("vnp_Command", "pay");
         pay.AddRequestData("vnp_TmnCode", vnp_TmnCode ?? "");
-        pay.AddRequestData("vnp_Amount", ((int)(amount * 100)).ToString());
+        pay.AddRequestData("vnp_Amount", (amount * 100L).ToString());
         pay.AddRequestData("vnp_CreateDate", DateTime.Now.ToString("yyyyMMddHHmmss"));
         pay.AddRequestData("vnp_CurrCode", "VND");
         pay.AddRequestData("vnp_IpAddr", HttpContext.Connection.RemoteIpAddress?.ToString() ?? "127.0.0.1");
@@ -141,7 +141,7 @@ public class PaymentController : Controller
         pay.AddRequestData("vnp_Version", "2.1.0");
         pay.AddRequestData("vnp_Command", "pay");
         pay.AddRequestData("vnp_TmnCode", vnp_TmnCode ?? "");
-        pay.AddRequestData("vnp_Amount", ((int)(amount * 100)).ToString());
+        pay.AddRequestData("vnp_Amount", (amount * 100L).ToString());
         pay.AddRequestData("vnp_CreateDate", DateTime.Now.ToString("yyyyMMddHHmmss"));
         pay.AddRequestData("vnp_CurrCode", "VND");
         pay.AddRequestData("vnp_IpAddr", HttpContext.Connection.RemoteIpAddress?.ToString() ?? "127.0.0.1");
