@@ -1,0 +1,107 @@
+﻿@model X.PagedList.IPagedList<GearShop.Models.ApplicationUser>
+@using X.PagedList.Mvc.Core
+@using X.PagedList
+
+@{
+    ViewData["Title"] = "Danh sách người dùng";
+    Layout = "_LayoutStaff";
+    var userRoles = ViewData["UserRoles"] as Dictionary<string, string>;
+}
+
+<div class="container-fluid pt-4 px-4">
+    <div class="row g-4">
+        <div class="col-12">
+            <div class="bg-light rounded h-100 p-4">
+                <h4 class="mb-4">Danh sách người dùng</h4>
+                <form asp-action="Index" method="get" class="mb-4">
+                    <div class="row g-3 align-items-center">
+                        <div class="col-auto">
+                            <label class="form-label">Trạng thái:</label>
+                        </div>
+                        <div class="col-auto">
+                            <select name="status" class="form-select">
+                                <option value="">Tất cả</option>
+                                <option value="0" selected="@(ViewData["SelectedStatus"]?.ToString() == "0")">Đang hoạt động</option>
+                                <option value="1" selected="@(ViewData["SelectedStatus"]?.ToString() == "1")">Không hoạt động</option>
+                                <option value="2" selected="@(ViewData["SelectedStatus"]?.ToString() == "2")">Đang bị vô hiệu hóa</option>
+                            </select>
+                        </div>
+                        <div class="col-auto">
+                            <button type="submit" class="btn btn-primary">Lọc</button>
+                        </div>
+                    </div>
+                </form>
+
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover">
+                        <thead>
+                            <tr>
+                                <th>
+                                    <a asp-action="Index" asp-route-sortOrder="@(ViewData["CurrentSort"]?.ToString() == "username" ? "username_desc" : "username")" asp-route-status="@ViewData["SelectedStatus"]">Tên đăng nhập</a>
+                                </th>
+                                <th>
+                                    <a asp-action="Index" asp-route-sortOrder="@(ViewData["CurrentSort"]?.ToString() == "fullname" ? "fullname_desc" : "fullname")" asp-route-status="@ViewData["SelectedStatus"]">Họ tên</a>
+                                </th>
+                                <th>
+                                    <a asp-action="Index" asp-route-sortOrder="@(ViewData["CurrentSort"]?.ToString() == "email" ? "email_desc" : "email")" asp-route-status="@ViewData["SelectedStatus"]">Email</a>
+                                </th>
+                                <th>
+                                    <a asp-action="Index" asp-route-sortOrder="@(ViewData["CurrentSort"]?.ToString() == "createdate" ? "createdate_desc" : "createdate")" asp-route-status="@ViewData["SelectedStatus"]">Ngày tạo</a>
+                                </th>
+                                <th>Vai trò</th>
+                                <th>
+                                    <a asp-action="Index" asp-route-sortOrder="@(ViewData["CurrentSort"]?.ToString() == "status" ? "status_desc" : "status")" asp-route-status="@ViewData["SelectedStatus"]">Trạng thái</a>
+                                </th>
+                                <th>Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var user in Model)
+                            {
+                                <tr>
+                                    <td>@user.UserName</td>
+                                    <td>@user.FullName</td>
+                                    <td>@user.Email</td>
+                                    <td>@user.CreateDate.ToString("dd/MM/yyyy HH:mm")</td>
+                                    <td>
+                                        @(userRoles != null && userRoles.ContainsKey(user.Id) ? userRoles[user.Id] : "Không có vai trò")
+                                    </td>
+                                    <td>
+                                        @if (user.status == 0)
+                                        {
+                                            @: Đang hoạt động
+                                        }
+                                        else if (user.status == 1)
+                                        {
+                                            @: Không hoạt động
+                                        }
+                                        else if (user.status == 2)
+                                        {
+                                            @: Đang bị vô hiệu hóa
+                                        }
+                                    </td>
+                                    <td>
+                                        <a asp-action="Details" asp-route-id="@user.Id" class="btn btn-info btn-sm me-1">Chi tiết</a>
+                                        <a asp-action="Edit" asp-route-id="@user.Id" class="btn btn-warning btn-sm me-1">Chỉnh sửa</a>
+                                        @if (user.status == 0)
+                                        {
+                                            <a asp-action="Delete" asp-route-id="@user.Id" class="btn btn-danger btn-sm">Vô hiệu hóa</a>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="d-flex justify-content-end mt-3">
+                    @Html.PagedListPager(Model, page => Url.Action("Index", new { page, status = ViewData["SelectedStatus"], sortOrder = ViewData["CurrentSort"] }), new PagedListRenderOptions
+               {
+                   LiElementClasses = new[] { "page-item" },
+                   PageClasses = new[] { "page-link" }
+               })
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

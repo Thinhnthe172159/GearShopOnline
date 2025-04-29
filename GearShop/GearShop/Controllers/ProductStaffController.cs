@@ -1,5 +1,6 @@
 ﻿using GearShop.Data;
 using GearShop.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
@@ -7,6 +8,7 @@ using X.PagedList.Extensions;
 
 namespace GearShop.Controllers
 {
+    [Authorize(Roles = "Staff")]
     public class ProductStaffController : Controller
     {
         private readonly ApplicationDbContext _context;

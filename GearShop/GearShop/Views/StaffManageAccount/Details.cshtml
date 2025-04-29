@@ -1,0 +1,58 @@
+﻿@model GearShop.Models.ApplicationUser
+
+@{
+    ViewData["Title"] = "Chi tiết người dùng";
+    Layout = "_LayoutStaff";
+    var userRole = ViewData["UserRole"] as string;
+}
+
+<div class="container-fluid pt-4 px-4">
+    <div class="row g-4">
+        <div class="col-12">
+            <div class="bg-light rounded h-100 p-4">
+                <h4 class="mb-4">Chi tiết người dùng</h4>
+                <dl class="row">
+                    <dt class="col-sm-2">Tên đăng nhập:</dt>
+                    <dd class="col-sm-10">@Model.UserName</dd>
+                    <dt class="col-sm-2">Họ tên:</dt>
+                    <dd class="col-sm-10">@Model.FullName</dd>
+                    <dt class="col-sm-2">Email:</dt>
+                    <dd class="col-sm-10">@Model.Email</dd>
+                    <dt class="col-sm-2">Số điện thoại:</dt>
+                    <dd class="col-sm-10">@Model.PhoneNumber</dd>
+                    <dt class="col-sm-2">Thành phố:</dt>
+                    <dd class="col-sm-10">@Model.City</dd>
+                    <dt class="col-sm-2">Quận/Huyện:</dt>
+                    <dd class="col-sm-10">@Model.District</dd>
+                    <dt class="col-sm-2">Xã/Phường:</dt>
+                    <dd class="col-sm-10">@Model.Commune</dd>
+                    <dt class="col-sm-2">Ngày tạo:</dt>
+                    <dd class="col-sm-10">@Model.CreateDate.ToString("dd/MM/yyyy HH:mm")</dd>
+                    <dt class="col-sm-2">Trạng thái:</dt>
+                    <dd class="col-sm-10">
+                        @if (Model.status == 0)
+                        {
+                            @: Đang hoạt động
+                        }
+                        else if (Model.status == 1)
+                        {
+                            @: Không hoạt động
+                        }
+                        else if (Model.status == 2)
+                        {
+                            @: Đang bị vô hiệu hóa
+                        }
+                    </dd>
+                    <dt class="col-sm-2">Vai trò:</dt>
+                    <dd class="col-sm-10">
+                        @(userRole ?? "Không có vai trò")
+                    </dd>
+                </dl>
+                <div class="d-flex justify-content-end">
+                    <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-warning me-2">Chỉnh sửa</a>
+                    <a asp-action="Index" class="btn btn-secondary">Quay lại</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

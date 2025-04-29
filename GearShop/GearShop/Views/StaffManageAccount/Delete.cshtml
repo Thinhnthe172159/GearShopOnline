@@ -1,0 +1,37 @@
+﻿@model GearShop.Models.ApplicationUser
+
+@{
+    ViewData["Title"] = "Vô hiệu hóa tài khoản";
+    Layout = "_LayoutStaff";
+    var userRole = ViewData["UserRole"] as string;
+}
+
+<div class="container-fluid pt-4 px-4">
+    <div class="row g-4">
+        <div class="col-12">
+            <div class="bg-light rounded h-100 p-4">
+                <h4 class="mb-4">Vô hiệu hóa tài khoản</h4>
+                <h5 class="mb-3">Bạn có chắc chắn muốn vô hiệu hóa tài khoản này?</h5>
+                <dl class="row">
+                    <dt class="col-sm-2">Tên đăng nhập:</dt>
+                    <dd class="col-sm-10">@Model.UserName</dd>
+                    <dt class="col-sm-2">Họ tên:</dt>
+                    <dd class="col-sm-10">@Model.FullName</dd>
+                    <dt class="col-sm-2">Email:</dt>
+                    <dd class="col-sm-10">@Model.Email</dd>
+                    <dt class="col-sm-2">Vai trò:</dt>
+                    <dd class="col-sm-10">
+                        @(userRole ?? "Không có vai trò")
+                    </dd>
+                </dl>
+                <form asp-action="Delete">
+                    <input type="hidden" asp-for="Id" />
+                    <div class="d-flex justify-content-end">
+                        <a asp-action="Index" class="btn btn-secondary me-2">Quay lại</a>
+                        <button type="submit" class="btn btn-danger">Vô hiệu hóa</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

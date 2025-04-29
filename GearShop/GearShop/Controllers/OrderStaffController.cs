@@ -8,9 +8,11 @@ using System;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using Microsoft.AspNetCore.Authorization;
 
 namespace GearShop.Controllers
 {
+    [Authorize(Roles = "Staff")]
     public class OrderStaffController : Controller
     {
         private readonly ApplicationDbContext _context;

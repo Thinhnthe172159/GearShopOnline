@@ -1,0 +1,70 @@
+﻿@model GearShop.Models.ApplicationUser
+
+@{
+    ViewData["Title"] = "Chỉnh sửa người dùng";
+    Layout = "_LayoutStaff";
+    var userRole = ViewData["UserRole"] as string;
+}
+
+<div class="container-fluid pt-4 px-4">
+    <div class="row g-4">
+        <div class="col-12">
+            <div class="bg-light rounded h-100 p-4">
+                <h4 class="mb-4">Chỉnh sửa người dùng</h4>
+                <form asp-action="Edit">
+                    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                    <input type="hidden" asp-for="Id" />
+                    <div class="mb-3">
+                        <label asp-for="UserName" class="form-label">Tên đăng nhập</label>
+                        <input asp-for="UserName" class="form-control" readonly />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Vai trò</label>
+                        <input class="form-control" value="@(userRole ?? "Không có vai trò")" readonly />
+                    </div>
+                    <div class="mb-3">
+                        <label asp-for="FullName" class="form-label">Họ tên</label>
+                        <input asp-for="FullName" class="form-control" />
+                        <span asp-validation-for="FullName" class="text-danger"></span>
+                    </div>
+                    <div class="mb-3">
+                        <label asp-for="PhoneNumber" class="form-label">Số điện thoại</label>
+                        <input asp-for="PhoneNumber" class="form-control" />
+                        <span asp-validation-for="PhoneNumber" class="text-danger"></span>
+                    </div>
+                    <div class="mb-3">
+                        <label asp-for="City" class="form-label">Thành phố</label>
+                        <input asp-for="City" class="form-control" />
+                        <span asp-validation-for="City" class="text-danger"></span>
+                    </div>
+                    <div class="mb-3">
+                        <label asp-for="District" class="form-label">Quận/Huyện</label>
+                        <input asp-for="District" class="form-control" />
+                        <span asp-validation-for="District" class="text-danger"></span>
+                    </div>
+                    <div class="mb-3">
+                        <label asp-for="Commune" class="form-label">Xã/Phường</label>
+                        <input asp-for="Commune" class="form-control" />
+                        <span asp-validation-for="Commune" class="text-danger"></span>
+                    </div>
+                    <div class="mb-3">
+                        <label asp-for="status" class="form-label">Trạng thái</label>
+                        <select asp-for="status" class="form-select">
+                            <option value="0">Đang hoạt động</option>
+                            <option value="1">Không hoạt động</option>
+                        </select>
+                        <span asp-validation-for="status" class="text-danger"></span>
+                    </div>
+                    <div class="d-flex justify-content-end">
+                        <a asp-action="Index" class="btn btn-secondary me-2">Quay lại</a>
+                        <button type="submit" class="btn btn-primary">Lưu</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

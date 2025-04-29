@@ -82,7 +82,9 @@
 					<a asp-action="Index" asp-controller="OrderStaff" class="nav-item nav-link @IsActive("OrderStaff")">
 						<i class="fa fa-shopping-cart me-2"></i>Quản lý Đơn hàng
 					</a>
-					<a href="#" class="nav-item nav-link"><i class="fa fa-user me-2"></i>Quản lý người dùng</a>
+					<a asp-action="Index" asp-controller="StaffManageAccount" class="nav-item nav-link @IsActive("StaffManageAccount")">
+						<i class="fa fa-user me-2"></i>Quản lý Người dùng
+					</a>
 					<a href="#" class="nav-item nav-link"><i class="fa fa-chart-bar me-2"></i>Thống kê, báo cáo</a>
 				</div>
 			</nav>
