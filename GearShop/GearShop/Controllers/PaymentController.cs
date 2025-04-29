@@ -84,7 +84,7 @@ public class PaymentController : Controller
                                 - ((discount / 100) * (itemCart.Product.Price * itemCart.Quantity))
                 };
 
-                amount += order.SoldPrice;
+                amount += (long)order.SoldPrice;
                 _context.orders.Add(order);
                 _context.carts.Remove(itemCart);
             }
