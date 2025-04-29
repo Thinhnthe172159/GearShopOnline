@@ -16,10 +16,7 @@ namespace GearShop.Controllers
         private readonly ILogger<StaffManageAccountController> _logger;
         private const int PageSize = 10;
 
-        public StaffManageAccountController(
-            UserManager<IdentityUser> userManager,
-            ApplicationDbContext dbContext,
-            ILogger<StaffManageAccountController> logger)
+        public StaffManageAccountController(UserManager<IdentityUser> userManager,ApplicationDbContext dbContext,ILogger<StaffManageAccountController> logger)
         {
             _userManager = userManager;
             _dbContext = dbContext;
@@ -105,9 +102,7 @@ namespace GearShop.Controllers
                 return NotFound();
             }
 
-            var user = await _dbContext.ApplicationUsers
-                .AsNoTracking()
-                .FirstOrDefaultAsync(u => u.Id == id);
+            var user = await _dbContext.ApplicationUsers.FirstOrDefaultAsync(u => u.Id == id);
 
             if (user == null)
             {
@@ -131,8 +126,7 @@ namespace GearShop.Controllers
                 return NotFound();
             }
 
-            var user = await _dbContext.ApplicationUsers
-                .FirstOrDefaultAsync(u => u.Id == id);
+            var user = await _dbContext.ApplicationUsers.FirstOrDefaultAsync(u => u.Id == id);
 
             if (user == null)
             {
