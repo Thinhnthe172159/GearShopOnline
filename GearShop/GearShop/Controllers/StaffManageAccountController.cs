@@ -16,14 +16,16 @@ namespace GearShop.Controllers
         private readonly ILogger<StaffManageAccountController> _logger;
         private const int PageSize = 10;
 
-        public StaffManageAccountController(UserManager<IdentityUser> userManager, ApplicationDbContext dbContext, ILogger<StaffManageAccountController> logger)
+        public StaffManageAccountController(
+            UserManager<IdentityUser> userManager,
+            ApplicationDbContext dbContext,
+            ILogger<StaffManageAccountController> logger)
         {
             _userManager = userManager;
             _dbContext = dbContext;
             _logger = logger;
         }
 
-        // GET: UserStaff
         public async Task<IActionResult> Index(int? page, int? status, string sortOrder)
         {
             int pageNumber = page ?? 1;
@@ -32,52 +34,64 @@ namespace GearShop.Controllers
             ViewData["CurrentPage"] = pageNumber;
             ViewData["SelectedStatus"] = status;
 
-            var users = _dbContext.ApplicationUsers.AsQueryable();
+            var usersQuery = _dbContext.ApplicationUsers.AsQueryable();
 
             if (status.HasValue)
             {
-                users = users.Where(u => u.status == status.Value);
+                usersQuery = usersQuery.Where(u => u.status == status.Value);
             }
 
             switch (sortOrder)
             {
                 case "username":
-                    users = users.OrderBy(u => u.UserName);
+                    usersQuery = usersQuery.OrderBy(u => u.UserName);
                     break;
                 case "username_desc":
-                    users = users.OrderByDescending(u => u.UserName);
+                    usersQuery = usersQuery.OrderByDescending(u => u.UserName);
                     break;
                 case "fullname":
-                    users = users.OrderBy(u => u.FullName);
+                    usersQuery = usersQuery.OrderBy(u => u.FullName);
                     break;
                 case "fullname_desc":
-                    users = users.OrderByDescending(u => u.FullName);
+                    usersQuery = usersQuery.OrderByDescending(u => u.FullName);
                     break;
                 case "email":
-                    users = users.OrderBy(u => u.Email);
+                    usersQuery = usersQuery.OrderBy(u => u.Email);
                     break;
                 case "email_desc":
-                    users = users.OrderByDescending(u => u.Email);
+                    usersQuery = usersQuery.OrderByDescending(u => u.Email);
                     break;
                 case "createdate":
-                    users = users.OrderBy(u => u.CreateDate);
+                    usersQuery = usersQuery.OrderBy(u => u.CreateDate);
                     break;
                 case "createdate_desc":
-                    users = users.OrderByDescending(u => u.CreateDate);
+                    usersQuery = usersQuery.OrderByDescending(u => u.CreateDate);
                     break;
                 case "status":
-                    users = users.OrderBy(u => u.status);
+                    usersQuery = usersQuery.OrderBy(u => u.status);
                     break;
                 case "status_desc":
-                    users = users.OrderByDescending(u => u.status);
+                    usersQuery = usersQuery.OrderByDescending(u => u.status);
                     break;
                 default:
-                    users = users.OrderByDescending(u => u.CreateDate);
+                    usersQuery = usersQuery.OrderByDescending(u => u.CreateDate);
                     break;
             }
 
-            var userList = await users.ToListAsync();
-            var pagedUsers = userList.ToPagedList(pageNumber, PageSize);
+            var users = await usersQuery.ToListAsync();
+
+            var userRoles = new Dictionary<string, string>();
+            foreach (var user in users)
+            {
+                var roles = await _userManager.GetRolesAsync(user);
+                userRoles[user.Id] = roles.FirstOrDefault() ?? "Không có vai trò";
+            }
+
+            users = users.Where(u => !string.Equals(userRoles[u.Id], "Admin", StringComparison.OrdinalIgnoreCase)).ToList();
+
+            var pagedUsers = users.ToPagedList(pageNumber, PageSize);
+
+            ViewData["UserRoles"] = userRoles;
 
             _logger.LogInformation("Hiển thị danh sách người dùng, trang {PageNumber}, trạng thái {Status}, sắp xếp {SortOrder}", pageNumber, status, sortOrder);
             return View(pagedUsers);
@@ -101,6 +115,10 @@ namespace GearShop.Controllers
                 return NotFound();
             }
 
+            var roles = await _userManager.GetRolesAsync(user);
+            var role = roles.FirstOrDefault() ?? "Không có vai trò";
+            ViewData["UserRole"] = role;
+
             _logger.LogInformation("Hiển thị chi tiết người dùng Id={Id}", id);
             return View(user);
         }
@@ -121,6 +139,10 @@ namespace GearShop.Controllers
                 _logger.LogWarning("Không tìm thấy người dùng với Id={Id}", id);
                 return NotFound();
             }
+
+            var roles = await _userManager.GetRolesAsync(user);
+            var role = roles.FirstOrDefault() ?? "Không có vai trò";
+            ViewData["UserRole"] = role;
 
             _logger.LogInformation("Hiển thị trang chỉnh sửa người dùng Id={Id}", id);
             return View(user);
@@ -183,6 +205,10 @@ namespace GearShop.Controllers
                 }
             }
 
+            var roles = await _userManager.GetRolesAsync(existingUser);
+            var role = roles.FirstOrDefault() ?? "Không có vai trò";
+            ViewData["UserRole"] = role;
+
             return View(existingUser);
         }
 
@@ -203,6 +229,10 @@ namespace GearShop.Controllers
                 _logger.LogWarning("Không tìm thấy người dùng với Id={Id}", id);
                 return NotFound();
             }
+
+            var roles = await _userManager.GetRolesAsync(user);
+            var role = roles.FirstOrDefault() ?? "Không có vai trò";
+            ViewData["UserRole"] = role;
 
             _logger.LogInformation("Hiển thị trang xác nhận vô hiệu hóa người dùng Id={Id}", id);
             return View(user);

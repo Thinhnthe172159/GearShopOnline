@@ -3,6 +3,7 @@
 @{
     ViewData["Title"] = "Chỉnh sửa người dùng";
     Layout = "_LayoutStaff";
+    var userRole = ViewData["UserRole"] as string;
 }
 
 <div class="container-fluid pt-4 px-4">
@@ -14,16 +15,20 @@
                     <div asp-validation-summary="ModelOnly" class="text-danger"></div>
                     <input type="hidden" asp-for="Id" />
                     <div class="mb-3">
-                        <label asp-for="UserName" class="form-label">Tên đăng nhập <span class="text-danger">*</span></label>
+                        <label asp-for="UserName" class="form-label">Tên đăng nhập</label>
                         <input asp-for="UserName" class="form-control" readonly />
                     </div>
                     <div class="mb-3">
-                        <label asp-for="FullName" class="form-label">Họ tên <span class="text-danger">*</span></label>
+                        <label class="form-label">Vai trò</label>
+                        <input class="form-control" value="@(userRole ?? "Không có vai trò")" readonly />
+                    </div>
+                    <div class="mb-3">
+                        <label asp-for="FullName" class="form-label">Họ tên</label>
                         <input asp-for="FullName" class="form-control" />
                         <span asp-validation-for="FullName" class="text-danger"></span>
                     </div>
                     <div class="mb-3">
-                        <label asp-for="PhoneNumber" class="form-label">Số điện thoại <span class="text-danger">*</span></label>
+                        <label asp-for="PhoneNumber" class="form-label">Số điện thoại</label>
                         <input asp-for="PhoneNumber" class="form-control" />
                         <span asp-validation-for="PhoneNumber" class="text-danger"></span>
                     </div>
@@ -43,7 +48,7 @@
                         <span asp-validation-for="Commune" class="text-danger"></span>
                     </div>
                     <div class="mb-3">
-                        <label asp-for="status" class="form-label">Trạng thái <span class="text-danger">*</span></label>
+                        <label asp-for="status" class="form-label">Trạng thái</label>
                         <select asp-for="status" class="form-select">
                             <option value="0">Đang hoạt động</option>
                             <option value="1">Không hoạt động</option>

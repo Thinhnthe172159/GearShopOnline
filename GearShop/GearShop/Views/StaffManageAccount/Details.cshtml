@@ -3,6 +3,7 @@
 @{
     ViewData["Title"] = "Chi tiết người dùng";
     Layout = "_LayoutStaff";
+    var userRole = ViewData["UserRole"] as string;
 }
 
 <div class="container-fluid pt-4 px-4">
@@ -17,6 +18,8 @@
                     <dd class="col-sm-10">@Model.FullName</dd>
                     <dt class="col-sm-2">Email:</dt>
                     <dd class="col-sm-10">@Model.Email</dd>
+                    <dt class="col-sm-2">Số điện thoại:</dt>
+                    <dd class="col-sm-10">@Model.PhoneNumber</dd>
                     <dt class="col-sm-2">Thành phố:</dt>
                     <dd class="col-sm-10">@Model.City</dd>
                     <dt class="col-sm-2">Quận/Huyện:</dt>
@@ -39,6 +42,10 @@
                         {
                             @: Đang bị vô hiệu hóa
                         }
+                    </dd>
+                    <dt class="col-sm-2">Vai trò:</dt>
+                    <dd class="col-sm-10">
+                        @(userRole ?? "Không có vai trò")
                     </dd>
                 </dl>
                 <div class="d-flex justify-content-end">

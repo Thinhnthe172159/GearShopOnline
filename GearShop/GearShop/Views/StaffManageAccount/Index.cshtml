@@ -5,6 +5,7 @@
 @{
     ViewData["Title"] = "Danh sách người dùng";
     Layout = "_LayoutStaff";
+    var userRoles = ViewData["UserRoles"] as Dictionary<string, string>;
 }
 
 <div class="container-fluid pt-4 px-4">
@@ -47,6 +48,7 @@
                                 <th>
                                     <a asp-action="Index" asp-route-sortOrder="@(ViewData["CurrentSort"]?.ToString() == "createdate" ? "createdate_desc" : "createdate")" asp-route-status="@ViewData["SelectedStatus"]">Ngày tạo</a>
                                 </th>
+                                <th>Vai trò</th>
                                 <th>
                                     <a asp-action="Index" asp-route-sortOrder="@(ViewData["CurrentSort"]?.ToString() == "status" ? "status_desc" : "status")" asp-route-status="@ViewData["SelectedStatus"]">Trạng thái</a>
                                 </th>
@@ -61,6 +63,9 @@
                                     <td>@user.FullName</td>
                                     <td>@user.Email</td>
                                     <td>@user.CreateDate.ToString("dd/MM/yyyy HH:mm")</td>
+                                    <td>
+                                        @(userRoles != null && userRoles.ContainsKey(user.Id) ? userRoles[user.Id] : "Không có vai trò")
+                                    </td>
                                     <td>
                                         @if (user.status == 0)
                                         {
@@ -78,7 +83,7 @@
                                     <td>
                                         <a asp-action="Details" asp-route-id="@user.Id" class="btn btn-info btn-sm me-1">Chi tiết</a>
                                         <a asp-action="Edit" asp-route-id="@user.Id" class="btn btn-warning btn-sm me-1">Chỉnh sửa</a>
-                                        @if (user.status == 0) // Only show "Vô hiệu hóa" for active users
+                                        @if (user.status == 0)
                                         {
                                             <a asp-action="Delete" asp-route-id="@user.Id" class="btn btn-danger btn-sm">Vô hiệu hóa</a>
                                         }
