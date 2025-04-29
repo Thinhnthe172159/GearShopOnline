@@ -1,8 +1,10 @@
-﻿using GearShop.Data;
+﻿using System.Runtime.Intrinsics.Arm;
+using GearShop.Data;
 using GearShop.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.CodeAnalysis;
 using Microsoft.EntityFrameworkCore;
 
 namespace GearShop.Controllers
@@ -33,12 +35,11 @@ namespace GearShop.Controllers
             var orderstatus = new OrderStatus();
             ViewBag.OrderStatus = orderstatus.GetAllStatus().ToList();
 
-            var list = _context.orders.Include(o => o.Product).Include(o => o.Product.Images).Where(o => o.ApplicationUser.Id == userId).OrderByDescending(o => o.CreateDate).AsQueryable();
+            var list = _context.orders.Include(o => o.Product).Include(o => o.Product.Images).Include(a => a.Comments).Where(o => o.ApplicationUser.Id == userId).OrderByDescending(o => o.CreateDate).AsQueryable();
             if (status != -1)
             {
-                // Hiển thị đơn hàng theo trạng thái
                 list = list.Where(o => o.Status == status);
-                if(status == 4)
+                if (status == 4)
                 {
                     list = list.OrderByDescending(o => o.ReviceDate);
                 }
@@ -82,6 +83,45 @@ namespace GearShop.Controllers
             }
             _context.SaveChanges();
             return RedirectToAction("Index", new { status = status });
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> SubmitReview(long OrderId, long ProductId, string? Content, int Rating, int status = -1)
+        {
+
+            var user = await userManager.GetUserAsync(User);
+            var AppUser = new ApplicationUser();
+            if (user != null)
+            {
+                AppUser = _context.ApplicationUsers.Find(user.Id);
+            }
+
+            var Comment = new Comment
+            {
+                OrderId = OrderId,
+                ProductId = ProductId,
+                Message = Content,
+                Rate = Rating,
+                CustomerName = AppUser?.FullName
+            };
+
+
+            try
+            {
+                _context.comments.Add(Comment);
+                await _context.SaveChangesAsync();
+                TempData["Noti"] = "Đã gửi đánh giá thành công!";
+            }
+            catch (Exception)
+            {
+                TempData["Noti"] = "Không thể gửi đánh giá tại thời điểm này!";
+            }
+
+
+            return RedirectToAction(nameof(Index), new
+            {
+                status = status
+            });
         }
     }
 }

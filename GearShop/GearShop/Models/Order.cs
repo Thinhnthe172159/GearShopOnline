@@ -16,7 +16,7 @@ namespace GearShop.Models
         public string? OrderCode { get; set; }
         public int Status { get; set; } = 1;// khởi tạo order
         public DateTime CreateDate { get; set; } = DateTime.Now;
-        public DateTime? ReviceDate {  get; set; }
+        public DateTime? ReviceDate { get; set; }
         [ForeignKey(nameof(ProductId))]
         public virtual Product Product { get; set; } = null!;
         [ForeignKey(nameof(CustomerId))]

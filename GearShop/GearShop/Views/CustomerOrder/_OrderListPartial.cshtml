@@ -1,20 +1,16 @@
 ﻿@model IEnumerable<GearShop.Models.Order>
 
 
-<!-- Nội dung chính -->
 <div class="container-fluid">
 	<div class="row">
-		<!-- Nội dung chính -->
 		<div class="col-md-12">
 			<div class="container">
-				<!-- Thanh tìm kiếm -->
 				<form class="input-group mb-3" asp-action="Index">
 					<input type="search" name="search" class="form-control" value="@ViewBag.CurrentFilter.search" placeholder="Bạn có thể tìm kiếm theo Tên Shop, ID đơn hàng hoặc Tên Sản phẩm">
 					<input type="number" value="@ViewBag.CurrentFilter.status" name="status" hidden readonly disabled />
 					<button class="btn btn-outline-dark">Tìm</button>
 				</form>
 
-				<!-- Wrapper cho danh sách sản phẩm -->
 				<div class="product-wrapper" style="max-height: 700px; overflow-y: auto;">
 					@foreach (var item in Model)
 					{
@@ -35,7 +31,7 @@
 										<h5 class="text-black">@item.Product.ProductName</h5>
 										<p>Mã đơn hàng: @item.OrderCode</p>
 										<p>Số lượng đặt: @item.Quantity</p>
-										<p><span class="btn text-light btn-primary">@(((List<OrderStatus>)ViewBag.OrderStatus).FirstOrDefault(s => s.Id == item.Status).Status)</span> @(item.ReviceDate != null ? " Thời gian: " + item.ReviceDate : "") </p>
+										<p><span class="btn text-light btn-primary">@(((List<OrderStatus>)ViewBag.OrderStatus)?.FirstOrDefault(s => s.Id == item.Status).Status)</span> @(item.ReviceDate != null ? " Thời gian: " + item.ReviceDate : "") </p>
 									</div>
 									<div class="col-md-4 text-end">
 										<p class="product-price">Đơn giá @((item.Product.Price).ToString("c0", new System.Globalization.CultureInfo("vi-VN"))) | <span class="text-decoration-line-through text-dark font-weight-bold">Tổng giá: @((item.Product.Price * item.Quantity).ToString("c0", new System.Globalization.CultureInfo("vi-VN")))</span></p>
@@ -54,7 +50,6 @@
 													<input name="Orderid" type="number" value="@item.Id" hidden readonly />
 													<button class="btn btn-primary text-white">Hủy đặt</button>
 												</form>
-
 											}
 											@if (item.Status == 3)
 											{
@@ -63,6 +58,50 @@
 													<input name="Orderid" type="number" value="@item.Id" hidden readonly />
 													<button class="btn btn-danger" onclick="return confirm('Bạn có đồng ý nhận đơn hàng này không ?')">Đã nhận được hàng</button>
 												</form>
+											}
+											@if (item.Status == 4)
+											{
+												if (item.Comments.Where(a => a.OrderId == item.Id && a.ProductId == item.ProductId).Count() != 1)
+												{
+													<!-- Button to trigger popup -->
+													<button class="btn btn-success" onclick="openReviewPopup('reviewPopup_@item.Id')">Đánh giá sản phẩm</button>
+
+													<!-- Popup form for review -->
+													<div id="reviewPopup_@item.Id" style="display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 30px; border: 1px solid #ddd; z-index: 1000; width: 500px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);">
+														<h4 style="font-size: 24px; margin-bottom: 10px;">Đánh giá của bạn</h4>
+
+														<form asp-action="SubmitReview" asp-controller="CustomerOrder" method="post">
+															<input type="hidden" name="OrderId" value="@item.Id" />
+															<input type="hidden" name="status" value="@ViewBag.CurrentFilter.status" />
+															<input type="hidden" name="ProductId" value="@item.Product.Id" />
+															<div style="margin-bottom: 20px;">
+																<label style="font-weight: bold; margin-bottom: 5px; display: block;">Chất lượng sản phẩm *:</label>
+																<div style="display: flex; align-items: center;">
+																	<select name="Rating" required style="border: 1px solid #ddd; padding: 5px; font-size: 16px;">
+																		<option value="5">★★★★★</option>
+																		<option value="4">★★★★☆</option>
+																		<option value="3">★★★☆☆</option>
+																		<option value="2">★★☆☆☆</option>
+																		<option value="1">★☆☆☆☆</option>
+																	</select>
+																</div>
+															</div>
+															<div style="margin-bottom: 20px;">
+																<label style="font-weight: bold; margin-bottom: 5px; display: block;">Nôi dung *:</label>
+																<textarea name="Content" required style="width: 100%; height: 120px; border: 1px solid #ddd; padding: 10px; resize: vertical; font-size: 14px;" placeholder="Viết đánh giá của bạn ở đây..."></textarea>
+															</div>
+															<div style="text-align: left;">
+																<button type="submit" style="background: #f1c40f; color: black; padding: 12px 24px; border: none; cursor: pointer; font-size: 16px; font-weight: bold;">Gửi</button>
+																<button type="button" onclick="closeReviewPopup('reviewPopup_@item.Id')" style="background: #f5f5f5; color: black; padding: 12px 24px; border: 1px solid #ddd; cursor: pointer; font-size: 16px; margin-left: 10px;">Hủy</button>
+															</div>
+														</form>
+													</div>
+													<!-- Overlay for popup -->
+													<div id="overlay_@item.Id" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 999;"></div>
+												}else{
+													<p class="btn text-success">Bạn đã đánh giá sản phẩm này</p>
+												}
+												
 											}
 										</div>
 									</div>
@@ -75,3 +114,39 @@
 		</div>
 	</div>
 </div>
+
+
+<script>
+	function openReviewPopup(popupId) {
+		document.getElementById(popupId).style.display = 'block';
+		document.getElementById('overlay_' + popupId.split('_')[1]).style.display = 'block';
+		document.body.style.overflow = 'hidden';
+	}
+
+	function closeReviewPopup(popupId) {
+		document.getElementById(popupId).style.display = 'none';
+		document.getElementById('overlay_' + popupId.split('_')[1]).style.display = 'none';
+		document.body.style.overflow = 'auto';
+	}
+</script>
+
+
+<style>
+	select, input, textarea {
+		border-radius: 4px;
+	}
+
+		select:focus, input:focus, textarea:focus {
+			outline: none;
+			border-color: #007bff;
+			box-shadow: 0 0 5px rgba(0,123,255,0.3);
+		}
+
+	button[type="submit"]:hover {
+		background: #e4b90a;
+	}
+
+	button[type="button"]:hover {
+		background: #e0e0e0;
+	}
+</style>
