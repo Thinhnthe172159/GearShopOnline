@@ -12,6 +12,7 @@ namespace GearShop.Models
         public long ProductId { get; set; }
         public DateTime CreatedDate { get; set; } = DateTime.Now;
         public int Rate { get; set; }
+        public string? CustomerName { get; set; }
         [StringLength(1000)]
         public string? Message { get; set; }
         [ForeignKey(nameof(OrderId))]

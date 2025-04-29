@@ -22,13 +22,6 @@ namespace GearShop.Controllers
             _context = context;
         }
 
-        //public IActionResult Index()
-        //{
-        //    var applicationDbContext = _context.products.Include(p => p.Brand).Include(p => p.ProductType).Include(a => a.Images);
-        //    return View(applicationDbContext.ToPagedList(1, 20));
-        //}
-
-
         public async Task<IActionResult> Index(string? search, List<int?> brandId, List<int?> typeId, int choice = 0, int page = 1, int size = 12)
         {
             var priceSelect = new SelectedPrice();
@@ -111,7 +104,7 @@ namespace GearShop.Controllers
             }
 
             var product = await _context.products
-                .Include(p => p.Brand)
+                .Include(p => p.Brand).Include(p => p.Comments).Include(p => p.Orders)
                 .Include(p => p.ProductType).Include(p => p.Images)
                 .FirstOrDefaultAsync(m => m.Id == id);
             if (product == null)
