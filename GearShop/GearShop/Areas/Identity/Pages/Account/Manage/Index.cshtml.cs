@@ -30,6 +30,8 @@ namespace GearShop.Areas.Identity.Pages.Account.Manage
 
         public string Username { get; set; }
 
+        public string FullName { get; set; }
+
         [TempData]
         public string StatusMessage { get; set; }
 
@@ -64,7 +66,7 @@ namespace GearShop.Areas.Identity.Pages.Account.Manage
             if (appUser != null && userName != null)
             {
                 Username = userName;
-
+                FullName = appUser.FullName;
                 Input = new InputModel
                 {
                     PhoneNumber = phoneNumber,

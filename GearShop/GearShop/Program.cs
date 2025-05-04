@@ -22,6 +22,23 @@ builder.Services.AddDefaultIdentity<IdentityUser>(options =>
            .AddRoles<IdentityRole>()
            .AddEntityFrameworkStores<ApplicationDbContext>();
 
+builder.Services.AddAuthentication()
+    .AddGoogle(options =>
+    {
+        var googleAuth = builder.Configuration.GetSection("Authentication:Google");
+        options.ClientId = googleAuth["ClientId"];
+        options.ClientSecret = googleAuth["ClientSecret"];
+         options.Scope.Add("profile");
+    });
+builder.Services.AddAuthentication()
+    .AddFacebook(facebookOptions =>
+    {
+        facebookOptions.AppId = builder.Configuration["Facebook:AppId"];
+        facebookOptions.AppSecret = builder.Configuration["Facebook:AppSecret"];
+        facebookOptions.CallbackPath = "/signin-facebook";
+        facebookOptions.Fields.Add("name");
+    });
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.

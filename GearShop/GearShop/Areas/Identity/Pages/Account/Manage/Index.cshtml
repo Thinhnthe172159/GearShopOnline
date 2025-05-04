@@ -21,6 +21,10 @@
                             <input asp-for="Username" class="form-control" placeholder="Please choose your username." disabled />
                             <label asp-for="Username" class="form-label"></label>
                         </div>
+                        <div class="form-floating mb-3">
+                            <input asp-for="FullName" class="form-control" placeholder="Please enter your FullName." required />
+                            <label asp-for="FullName" class="form-label"></label>
+                        </div>
                         <h3>Thông tin liên lạc</h3>
                         <div class="form-floating mb-3">
                             <input asp-for="Input.PhoneNumber" class="form-control" placeholder="Please enter your phone number." type="tel" />

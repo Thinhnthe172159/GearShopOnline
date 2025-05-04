@@ -64,6 +64,23 @@
                                 <a asp-page="./Register" asp-route-returnUrl="@Model.ReturnUrl">Bạn chưa có tài khoản</a>
                             </div>
                         </form>
+                        <div class="d-flex justify-content-center">
+							<span>
+								<form asp-controller="Account" asp-action="ExternalLogin" method="post">
+									<input type="hidden" name="provider" value="Google" />
+									<button type="submit" class="btn text-primary" style="font-size:30px"><i class="fab fa-google"></i></button>
+								</form>
+							</span>
+							<span>
+                                <form asp-action="ExternalLogin" asp-controller="Account" method="post">
+                                    <input type="hidden" name="provider" value="Facebook" />
+                                    <button type="submit" class="btn text-primary" style="font-size:30px"><i class="fab fa-facebook"></i></button>
+                                </form>
+							</span>
+                         
+                         
+                        </div>
+                       
                     </div>
                 </div>
             </div>
