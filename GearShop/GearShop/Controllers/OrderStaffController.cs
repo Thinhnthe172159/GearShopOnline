@@ -9,6 +9,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Microsoft.AspNetCore.Authorization;
+using SkiaSharp;
 
 namespace GearShop.Controllers
 {
@@ -32,10 +33,10 @@ namespace GearShop.Controllers
 
             ViewData["CurrentSort"] = sortOrder;
             ViewData["CurrentPage"] = pageNumber;
-            ViewData["SelectedStatus"] = status;
+            ViewBag.SelectedStatus = status;
 
-            var orderStatusList = new OrderStatus().GetAllStatus();
-            ViewData["OrderStatus"] = new SelectList(orderStatusList, "Id", "Status");
+            var orderStatusList = _context.orderStatuses.ToList();
+            ViewBag.OrderStatusList = orderStatusList;
 
             var orders = _context.orders
                 .Include(o => o.Product)
@@ -47,7 +48,7 @@ namespace GearShop.Controllers
 
             if (status.HasValue)
             {
-                orders = orders.Where(o => o.Status == status.Value);
+                orders = orders.Where(o => o.Status == status).AsQueryable();
             }
 
             switch (sortOrder)
@@ -136,7 +137,7 @@ namespace GearShop.Controllers
 
             ViewData["ProductId"] = new SelectList(_context.products.AsNoTracking(), "Id", "ProductName");
             ViewData["CustomerId"] = new SelectList(_context.Users.AsNoTracking(), "Id", "UserName");
-            ViewData["StatusList"] = new SelectList(new OrderStatus().GetAllStatus(), "Id", "Status");
+            ViewData["StatusList"] = new SelectList(_context.orderStatuses.ToList(), "Id", "Status");
             ViewData["ProductPrices"] = _context.products.AsNoTracking().ToDictionary(p => p.Id, p => p.Price);
             ViewData["ProductQuantities"] = _context.products.AsNoTracking().ToDictionary(p => p.Id, p => p.Quantity);
             ViewData["ProductImages"] = _context.productImages
@@ -175,7 +176,7 @@ namespace GearShop.Controllers
                 hasValidationErrors = true;
             }
 
-            if (!new OrderStatus().GetAllStatus().Any(s => s.Id == order.Status))
+            if (!_context.orderStatuses.ToList().Any(s => s.Id == order.Status))
             {
                 ModelState.AddModelError("Status", "Trạng thái không hợp lệ.");
                 hasValidationErrors = true;
@@ -205,38 +206,38 @@ namespace GearShop.Controllers
                     ModelState.AddModelError("Quantity", "Số lượng sản phẩm không đủ trong kho.");
                     hasValidationErrors = true;
                 }
+
+
+                if (!hasValidationErrors && ModelState.IsValid)
+                {
+                    try
+                    {
+                        order.OrderCode = Guid.NewGuid().ToString();
+                        product.Quantity -= order.Quantity;
+                        _context.Update(product);
+                        _context.Add(order);
+                        await _context.SaveChangesAsync();
+
+                        TempData["SuccessMessage"] = "Đơn hàng đã được tạo thành công!";
+                        return RedirectToAction(nameof(Index));
+                    }
+                    catch (DbUpdateException ex)
+                    {
+                        _logger.LogError(ex, "Lỗi khi lưu đơn hàng: {Message}", ex.Message);
+                        ModelState.AddModelError("", "Lỗi khi lưu đơn hàng. Vui lòng kiểm tra dữ liệu và thử lại.");
+                        hasValidationErrors = true;
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "Lỗi không mong muốn khi tạo đơn hàng: {Message}", ex.Message);
+                        ModelState.AddModelError("", "Đã xảy ra lỗi không mong muốn. Vui lòng thử lại sau.");
+                        hasValidationErrors = true;
+                    }
+                }
             }
-
-            if (!hasValidationErrors && ModelState.IsValid)
-            {
-                try
-                {
-                    order.OrderCode = Guid.NewGuid().ToString();
-                    product.Quantity -= order.Quantity;
-                    _context.Update(product);
-                    _context.Add(order);
-                    await _context.SaveChangesAsync();
-
-                    TempData["SuccessMessage"] = "Đơn hàng đã được tạo thành công!";
-                    return RedirectToAction(nameof(Index));
-                }
-                catch (DbUpdateException ex)
-                {
-                    _logger.LogError(ex, "Lỗi khi lưu đơn hàng: {Message}", ex.Message);
-                    ModelState.AddModelError("", "Lỗi khi lưu đơn hàng. Vui lòng kiểm tra dữ liệu và thử lại.");
-                    hasValidationErrors = true;
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex, "Lỗi không mong muốn khi tạo đơn hàng: {Message}", ex.Message);
-                    ModelState.AddModelError("", "Đã xảy ra lỗi không mong muốn. Vui lòng thử lại sau.");
-                    hasValidationErrors = true;
-                }
-            }
-
             ViewData["ProductId"] = new SelectList(_context.products.AsNoTracking(), "Id", "ProductName", order.ProductId);
             ViewData["CustomerId"] = new SelectList(_context.Users.AsNoTracking(), "Id", "UserName", order.CustomerId);
-            ViewData["StatusList"] = new SelectList(new OrderStatus().GetAllStatus(), "Id", "Status", order.Status);
+            ViewData["StatusList"] = new SelectList(_context.orderStatuses.ToList(), "Id", "Status", order.Status);
             ViewData["ProductPrices"] = _context.products.AsNoTracking().ToDictionary(p => p.Id, p => p.Price);
             ViewData["ProductQuantities"] = _context.products.AsNoTracking().ToDictionary(p => p.Id, p => p.Quantity);
             ViewData["ProductImages"] = _context.productImages
@@ -274,7 +275,7 @@ namespace GearShop.Controllers
 
             ViewData["ProductId"] = new SelectList(_context.products.AsNoTracking(), "Id", "ProductName", order.ProductId);
             ViewData["CustomerId"] = new SelectList(_context.Users.AsNoTracking(), "Id", "UserName", order.CustomerId);
-            ViewData["StatusList"] = new SelectList(new OrderStatus().GetAllStatus(), "Id", "Status", order.Status);
+            ViewData["StatusList"] = new SelectList(_context.orderStatuses.ToList(), "Id", "Status", order.Status);
             ViewData["ProductPrices"] = _context.products.AsNoTracking().ToDictionary(p => p.Id, p => p.Price);
             ViewData["ProductQuantities"] = _context.products.AsNoTracking().ToDictionary(p => p.Id, p => p.Quantity);
             ViewData["ProductImages"] = _context.productImages
@@ -320,7 +321,7 @@ namespace GearShop.Controllers
                 hasValidationErrors = true;
             }
 
-            if (!new OrderStatus().GetAllStatus().Any(s => s.Id == order.Status))
+            if (!_context.orderStatuses.ToList().Any(s => s.Id == order.Status))
             {
                 ModelState.AddModelError("Status", "Trạng thái không hợp lệ.");
                 hasValidationErrors = true;
@@ -384,7 +385,7 @@ namespace GearShop.Controllers
 
             ViewData["ProductId"] = new SelectList(_context.products.AsNoTracking(), "Id", "ProductName", order.ProductId);
             ViewData["CustomerId"] = new SelectList(_context.Users.AsNoTracking(), "Id", "UserName", order.CustomerId);
-            ViewData["StatusList"] = new SelectList(new OrderStatus().GetAllStatus(), "Id", "Status", order.Status);
+            ViewData["StatusList"] = new SelectList(_context.orderStatuses.ToList(), "Id", "Status", order.Status);
             ViewData["ProductPrices"] = _context.products.AsNoTracking().ToDictionary(p => p.Id, p => p.Price);
             ViewData["ProductQuantities"] = _context.products.AsNoTracking().ToDictionary(p => p.Id, p => p.Quantity);
             ViewData["ProductImages"] = _context.productImages

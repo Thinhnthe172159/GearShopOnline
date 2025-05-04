@@ -29,7 +29,6 @@ namespace GearShop.Controllers
             _roleManager = roleManager;
         }
 
-        // Trang chính của admin
         public IActionResult Index()
         {
             return View();
@@ -37,19 +36,19 @@ namespace GearShop.Controllers
 
         public async Task<IActionResult> StaffList()
         {
-            // Lấy tất cả các user có role Staff một cách hiệu quả hơn
+            
             var staffRole = await _roleManager.FindByNameAsync("Staff");
             if (staffRole == null)
             {
                 return View(new List<IdentityUser>());
             }
 
-            // Lấy danh sách user có role Staff
+        
             var staffUsers = await _userManager.GetUsersInRoleAsync("Staff");
 
             return View(staffUsers);
         }
-        // GET: HomeAdmin/UserRoles
+ 
         public async Task<IActionResult> UserRoles()
         {
             var users = _userManager.Users.ToList();
@@ -59,7 +58,7 @@ namespace GearShop.Controllers
             {
                 var roles = await _userManager.GetRolesAsync(user);
 
-                // Bỏ qua người dùng có vai trò Admin
+
                 if (roles.Contains("Admin"))
                     continue;
 
@@ -75,7 +74,7 @@ namespace GearShop.Controllers
             return View(userRolesViewModel);
         }
 
-        // GET: HomeAdmin/ManageRoles/userId
+     
         public async Task<IActionResult> ManageRoles(string userId)
         {
             var user = await _userManager.FindByIdAsync(userId);
@@ -91,18 +90,18 @@ namespace GearShop.Controllers
                 Email = user.Email
             };
 
-            // Lấy tất cả các role
+        
             var roles = _roleManager.Roles.ToList();
             model.AllRoles = roles.Select(r => r.Name).ToList();
 
-            // Lấy các role mà user hiện có
+   
             var userRoles = await _userManager.GetRolesAsync(user);
             model.UserRoles = userRoles.ToList();
 
             return View(model);
         }
 
-        // POST: HomeAdmin/ManageRoles/userId
+
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> ManageRoles(ManageRoleViewModel model, string selectedRoles)
@@ -113,17 +112,16 @@ namespace GearShop.Controllers
                 return NotFound();
             }
 
-            // Đảm bảo vai trò được chọn không phải là Admin
+  
             if (selectedRoles == "Admin")
             {
                 TempData["ErrorMessage"] = "Không được phép gán vai trò Admin";
                 return RedirectToAction(nameof(UserRoles));
             }
 
-            // Lấy tất cả role hiện tại của user
+       
             var userRoles = await _userManager.GetRolesAsync(user);
 
-            // Xóa tất cả role hiện tại
             var result = await _userManager.RemoveFromRolesAsync(user, userRoles);
             if (!result.Succeeded)
             {
@@ -131,7 +129,7 @@ namespace GearShop.Controllers
                 return View(model);
             }
 
-            // Thêm vai trò mới được chọn
+            
             if (!string.IsNullOrEmpty(selectedRoles))
             {
                 result = await _userManager.AddToRoleAsync(user, selectedRoles);
@@ -146,7 +144,7 @@ namespace GearShop.Controllers
             return RedirectToAction(nameof(UserRoles));
         }
 
-        // POST: HomeAdmin/DeleteStaff
+      
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteStaff(string userId)
@@ -164,7 +162,6 @@ namespace GearShop.Controllers
                 return RedirectToAction(nameof(StaffList));
             }
 
-            // Kiểm tra xem người dùng có phải là Staff không
             var isStaff = await _userManager.IsInRoleAsync(user, "Staff");
             if (!isStaff)
             {
@@ -172,10 +169,10 @@ namespace GearShop.Controllers
                 return RedirectToAction(nameof(StaffList));
             }
 
-            // Xóa người dùng khỏi role Staff trước
+          
             await _userManager.RemoveFromRoleAsync(user, "Staff");
 
-            // Xóa người dùng
+      
             var result = await _userManager.DeleteAsync(user);
             if (result.Succeeded)
             {
@@ -188,13 +185,12 @@ namespace GearShop.Controllers
 
             return RedirectToAction(nameof(StaffList));
         }
-        // Trong HomeAdminController.cs
+ 
         public async Task<IActionResult> RevenueStatistics(string period = "day")
         {
             var today = DateTime.Today;
             var stats = new RevenueStatisticsViewModel();
 
-            // Lấy dữ liệu sản phẩm bán chạy/ít nhất - chỉ tính đơn hàng đã nhận (Status = 4)
             var productStats = await _context.orders
                 .Where(o => o.Status == 4) // Chỉ tính đơn hàng đã nhận
                 .GroupBy(o => new { o.ProductId, ProductName = o.Product.ProductName })
@@ -210,7 +206,7 @@ namespace GearShop.Controllers
             stats.BestSellingProducts = productStats.OrderByDescending(p => p.TotalQuantity).Take(5).ToList();
             stats.WorstSellingProducts = productStats.OrderBy(p => p.TotalQuantity).Take(5).ToList();
 
-            // Doanh thu theo ngày/tháng/năm
+  
             switch (period.ToLower())
             {
                 case "month":
@@ -229,7 +225,7 @@ namespace GearShop.Controllers
                     stats.MonthlyRevenues = await GetMonthlyRevenues(today.Year);
                     break;
 
-                default: // day
+                default: 
                     stats.Period = "Ngày " + today.ToString("dd/MM/yyyy");
                     stats.DailyRevenue = await _context.orders
                         .Where(o => o.Status == 4 && o.CreateDate.Date == today)

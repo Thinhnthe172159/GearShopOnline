@@ -14,6 +14,7 @@ using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.Extensions.Logging;
+using GearShop.Data;
 
 namespace GearShop.Areas.Identity.Pages.Account
 {
@@ -23,14 +24,17 @@ namespace GearShop.Areas.Identity.Pages.Account
         private readonly ILogger<LoginModel> _logger;
         private readonly UserManager<IdentityUser> _userManager;
         private readonly RoleManager<IdentityRole> _roleManager;
+        private readonly ApplicationDbContext _context;
 
-        public LoginModel(SignInManager<IdentityUser> signInManager, ILogger<LoginModel> logger, UserManager<IdentityUser> userManager, RoleManager<IdentityRole> roleManager)
+        public LoginModel(SignInManager<IdentityUser> signInManager, ILogger<LoginModel> logger, UserManager<IdentityUser> userManager, RoleManager<IdentityRole> roleManager, ApplicationDbContext context)
         {
             _signInManager = signInManager;
             _logger = logger;
             _userManager = userManager;
             _roleManager = roleManager;
+            _context = context;
         }
+
 
 
 
@@ -124,17 +128,23 @@ namespace GearShop.Areas.Identity.Pages.Account
 
                     var user = await _userManager.FindByEmailAsync(Input.Email);
                     var roles = await _userManager.GetRolesAsync(user);
-
-                    _logger.LogInformation("User logged in.");
-                    if (roles.Contains("Admin"))
+                    var AppUser = _context.ApplicationUsers.Find(user.Id);
+                    if (AppUser != null && AppUser.status != 2)
                     {
-                        return LocalRedirect("/HomeAdmin/Index");
+                        _logger.LogInformation("User logged in.");
+                        if (roles.Contains("Admin"))
+                        {
+                            return LocalRedirect("/HomeAdmin/Index");
+                        }
+                        if (roles.Contains("Staff"))
+                        {
+                            return LocalRedirect("/HomeStaff/Index");
+                        }
                     }
-                    if (roles.Contains("Staff"))
+                    else
                     {
-                        return LocalRedirect("/HomeStaff/Index");
+                        TempData["Noti"] = "Tài khoản của bạn không khả dụng tại thời điểm này!";
                     }
-                    // đường dẫn mặc định
                     return LocalRedirect(returnUrl);
                 }
                 if (result.RequiresTwoFactor)

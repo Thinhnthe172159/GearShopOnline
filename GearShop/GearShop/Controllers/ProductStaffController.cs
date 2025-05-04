@@ -323,17 +323,17 @@ namespace GearShop.Controllers
                     TempData["SuccessMessage"] = "Sản phẩm đã được thêm thành công!";
                     return RedirectToAction(nameof(Index));
                 }
-                catch (IOException ex)
+                catch (IOException)
                 {
                     ModelState.AddModelError("imageFiles", "Lỗi khi lưu hình ảnh. Vui lòng thử lại.");
                     hasValidationErrors = true;
                 }
-                catch (DbUpdateException ex)
+                catch (DbUpdateException)
                 {
                     ModelState.AddModelError("", "Lỗi khi lưu sản phẩm vào cơ sở dữ liệu. Vui lòng kiểm tra dữ liệu và thử lại.");
                     hasValidationErrors = true;
                 }
-                catch (Exception ex)
+                catch (Exception)
                 {
                     ModelState.AddModelError("", "Đã xảy ra lỗi không mong muốn. Vui lòng thử lại sau.");
                     hasValidationErrors = true;
@@ -558,7 +558,7 @@ namespace GearShop.Controllers
                     TempData["SuccessMessage"] = "Sản phẩm đã được cập nhật thành công!";
                     return RedirectToAction(nameof(Index));
                 }
-                catch (DbUpdateConcurrencyException ex)
+                catch (DbUpdateConcurrencyException)
                 {
                     if (!ProductExists(product.Id))
                     {
@@ -567,7 +567,7 @@ namespace GearShop.Controllers
                     ModelState.AddModelError("", "Đã xảy ra lỗi đồng bộ hóa. Vui lòng thử lại.");
                     hasValidationErrors = true;
                 }
-                catch (Exception ex)
+                catch (Exception)
                 {
                     ModelState.AddModelError("", "Đã xảy ra lỗi khi cập nhật sản phẩm. Vui lòng thử lại.");
                     hasValidationErrors = true;

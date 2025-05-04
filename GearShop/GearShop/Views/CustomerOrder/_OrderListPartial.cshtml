@@ -31,7 +31,7 @@
 										<h5 class="text-black">@item.Product.ProductName</h5>
 										<p>Mã đơn hàng: @item.OrderCode</p>
 										<p>Số lượng đặt: @item.Quantity</p>
-										<p><span class="btn text-light btn-primary">@(((List<OrderStatus>)ViewBag.OrderStatus)?.FirstOrDefault(s => s.Id == item.Status).Status)</span> @(item.ReviceDate != null ? " Thời gian: " + item.ReviceDate : "") </p>
+										<p><span class="btn text-light btn-primary">@(((List<OrderStatus>)ViewBag.OrderStatus)?.FirstOrDefault(s => s.Id == item.Status).CustomerStatus)</span> @(item.ReviceDate != null ? " Thời gian: " + item.ReviceDate : "") </p>
 									</div>
 									<div class="col-md-4 text-end">
 										<p class="product-price">Đơn giá @((item.Product.Price).ToString("c0", new System.Globalization.CultureInfo("vi-VN"))) | <span class="text-decoration-line-through text-dark font-weight-bold">Tổng giá: @((item.Product.Price * item.Quantity).ToString("c0", new System.Globalization.CultureInfo("vi-VN")))</span></p>

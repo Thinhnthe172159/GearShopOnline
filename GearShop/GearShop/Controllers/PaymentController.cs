@@ -115,6 +115,33 @@ public class PaymentController : Controller
         return Redirect(paymentUrl);
     }
 
+    public async Task<IActionResult> PaymentResult()
+    {
+        var responseData = Request.Query;
+        var vnpay = new VnPayLibrary();
+        string? orderInfo = responseData["vnp_OrderInfo"];
+        if (responseData != null)
+        {
+            string? transactionStatus = responseData["vnp_TransactionStatus"];
+            if (!string.IsNullOrEmpty(orderInfo) && transactionStatus == "00")
+            {
+                var Orders = _context.orders.Include(o => o.Product).Where(o => o.OrderCode == orderInfo).ToList();
+                foreach (var item in Orders)
+                {
+                    var product = _context.products.Find(item.Product.Id);
+                    if (product != null)
+                    {
+                        product.Quantity -= item.Quantity;
+                        _context.products.Update(product);
+                    }
+                    item.Status = 2;// Trạng Thái thanh toán thành công!
+                }
+                await _context.SaveChangesAsync();
+            }
+        }
+        return View();
+    }
+
 
     [HttpPost]
     [Authorize(Roles = "Customer")]
@@ -155,30 +182,5 @@ public class PaymentController : Controller
         return Redirect(paymentUrl);
     }
 
-    public async Task<IActionResult> PaymentResult()
-    {
-        var responseData = Request.Query;
-        var vnpay = new VnPayLibrary();
-        string? orderInfo = responseData["vnp_OrderInfo"];
-        if (responseData != null)
-        {
-            string? transactionStatus = responseData["vnp_TransactionStatus"];
-            if (!string.IsNullOrEmpty(orderInfo) && transactionStatus == "00")
-            {
-                var Orders = _context.orders.Include(o => o.Product).Where(o => o.OrderCode == orderInfo).ToList();
-                foreach (var item in Orders)
-                {
-                    var product = _context.products.Find(item.Product.Id);
-                    if (product != null)
-                    {
-                        product.Quantity -= item.Quantity;
-                        _context.products.Update(product);
-                    }
-                    item.Status = 2;// Trạng Thái thanh toán thành công!
-                }
-                await _context.SaveChangesAsync();
-            }
-        }
-        return View();
-    }
+ 
 }

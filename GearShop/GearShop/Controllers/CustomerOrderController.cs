@@ -32,8 +32,8 @@ namespace GearShop.Controllers
                 userId = user.Id;
             }
 
-            var orderstatus = new OrderStatus();
-            ViewBag.OrderStatus = orderstatus.GetAllStatus().ToList();
+            var orderstatus = await _context.orderStatuses.ToListAsync();
+            ViewBag.OrderStatus = orderstatus;
 
             var list = _context.orders.Include(o => o.Product).Include(o => o.Product.Images).Include(a => a.Comments).Where(o => o.ApplicationUser.Id == userId).OrderByDescending(o => o.CreateDate).AsQueryable();
             if (status != -1)

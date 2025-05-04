@@ -14,8 +14,13 @@ namespace GearShop.Models
         public decimal SoldPrice { get; set; }
         [MaxLength(100)]
         public string? OrderCode { get; set; }
-        public int Status { get; set; } = 1;// khởi tạo order
+        public int Status { get; set; } = 1;
         public DateTime CreateDate { get; set; } = DateTime.Now;
+        // Lý do phản hồi
+        public string? ReturnReason { get; set; }
+        // Phản hồi của shop
+        public string? ResponseReturn { get; set; }
+        public DateTime? Requestdate { get; set; }
         public DateTime? ReviceDate { get; set; }
         [ForeignKey(nameof(ProductId))]
         public virtual Product Product { get; set; } = null!;

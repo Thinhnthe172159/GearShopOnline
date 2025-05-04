@@ -18,15 +18,15 @@
                         <div class="me-2">
                             <select id="statusFilter" class="form-select" style="width: 200px;">
                                 <option value="">Tất cả trạng thái</option>
-                                @foreach (var status in (SelectList)ViewData["OrderStatus"])
+                                @foreach (var status in ViewBag.OrderStatusList)
                                 {
-                                    if (ViewData["SelectedStatus"]?.ToString() == status.Value)
+                                    if (ViewBag.SelectedStatus == status.Id)
                                     {
-                                        <option value="@status.Value" selected>@status.Text</option>
+                                        <option value="@status.Id" selected>@status.Status</option>
                                     }
                                     else
                                     {
-                                        <option value="@status.Value">@status.Text</option>
+                                        <option value="@status.Id">@status.Status</option>
                                     }
                                 }
                             </select>
@@ -73,7 +73,7 @@
                         </thead>
                         @{
                             var index = (Model.PageNumber - 1) * Model.PageSize + 1;
-                            var orderStatusList = new GearShop.Models.OrderStatus().GetAllStatus();
+                            var orderStatusList = (List<OrderStatus>)ViewBag.OrderStatusList;
                         }
                         <tbody>
                             @foreach (var item in Model)
