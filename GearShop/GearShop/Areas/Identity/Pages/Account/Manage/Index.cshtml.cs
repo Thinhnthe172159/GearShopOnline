@@ -30,8 +30,6 @@ namespace GearShop.Areas.Identity.Pages.Account.Manage
 
         public string Username { get; set; }
 
-        public string FullName { get; set; }
-
         [TempData]
         public string StatusMessage { get; set; }
 
@@ -43,6 +41,9 @@ namespace GearShop.Areas.Identity.Pages.Account.Manage
             [Phone]
             [Display(Name = "Nhập số điện thoại")]
             public string? PhoneNumber { get; set; }
+
+            [Display(Name = "Nhập họ và tên")]
+            public string? FullName { get; set; }
 
             [Required]
             [Display(Name = "Chọn thành phố")]
@@ -66,13 +67,13 @@ namespace GearShop.Areas.Identity.Pages.Account.Manage
             if (appUser != null && userName != null)
             {
                 Username = userName;
-                FullName = appUser.FullName;
                 Input = new InputModel
                 {
                     PhoneNumber = phoneNumber,
                     City = appUser.City,
                     District = appUser.District,
-                    Commune = appUser.Commune
+                    Commune = appUser.Commune,
+                    FullName = appUser.FullName
                 };
             }
         }
@@ -121,6 +122,7 @@ namespace GearShop.Areas.Identity.Pages.Account.Manage
                 appUser.City = Input.City;
                 appUser.District = Input.District;
                 appUser.Commune = Input.Commune;
+                appUser.FullName = Input.FullName;
                 _context.ApplicationUsers.Update(appUser);
                 await _context.SaveChangesAsync();
             }
