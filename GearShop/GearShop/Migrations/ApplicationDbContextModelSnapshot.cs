@@ -34,7 +34,7 @@ namespace GearShop.Migrations
 
                     b.HasIndex("ProductTypesId");
 
-                    b.ToTable("BrandProductType", (string)null);
+                    b.ToTable("BrandProductType");
                 });
 
             modelBuilder.Entity("GearShop.Models.Brand", b =>
@@ -67,7 +67,7 @@ namespace GearShop.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("brands", (string)null);
+                    b.ToTable("brands");
                 });
 
             modelBuilder.Entity("GearShop.Models.Cart", b =>
@@ -94,7 +94,7 @@ namespace GearShop.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("carts", (string)null);
+                    b.ToTable("carts");
                 });
 
             modelBuilder.Entity("GearShop.Models.Comment", b =>
@@ -108,6 +108,9 @@ namespace GearShop.Migrations
                     b.Property<DateTime>("CreatedDate")
                         .HasColumnType("datetime2");
 
+                    b.Property<string>("CustomerName")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("Message")
                         .HasMaxLength(1000)
                         .HasColumnType("nvarchar(1000)");
@@ -119,7 +122,37 @@ namespace GearShop.Migrations
 
                     b.HasIndex("ProductId");
 
-                    b.ToTable("comments", (string)null);
+                    b.ToTable("comments");
+                });
+
+            modelBuilder.Entity("GearShop.Models.Coupon", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Code")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<DateTime>("DateCreate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("DateEnd")
+                        .HasColumnType("datetime2");
+
+                    b.Property<decimal>("discout")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int>("status")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Coupon");
                 });
 
             modelBuilder.Entity("GearShop.Models.Order", b =>
@@ -137,14 +170,33 @@ namespace GearShop.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
+                    b.Property<string>("OrderCode")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
                     b.Property<long>("ProductId")
                         .HasColumnType("bigint");
 
                     b.Property<int>("Quantity")
                         .HasColumnType("int");
 
-                    b.Property<double>("SoldPrice")
-                        .HasColumnType("float");
+                    b.Property<DateTime?>("Requestdate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("ResponseReturn")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ReturnReason")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("ReviceDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<decimal>("SoldPrice")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
 
                     b.HasKey("Id");
 
@@ -152,7 +204,26 @@ namespace GearShop.Migrations
 
                     b.HasIndex("ProductId");
 
-                    b.ToTable("orders", (string)null);
+                    b.ToTable("orders");
+                });
+
+            modelBuilder.Entity("GearShop.Models.OrderStatus", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("CustomerStatus")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Status")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("OrderStatus");
                 });
 
             modelBuilder.Entity("GearShop.Models.Product", b =>
@@ -163,7 +234,7 @@ namespace GearShop.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
 
-                    b.Property<int>("BrandId")
+                    b.Property<int?>("BrandId")
                         .HasColumnType("int");
 
                     b.Property<string>("CreatedBy")
@@ -196,7 +267,7 @@ namespace GearShop.Migrations
                         .HasMaxLength(350)
                         .HasColumnType("nvarchar(350)");
 
-                    b.Property<int>("ProductTypeId")
+                    b.Property<int?>("ProductTypeId")
                         .HasColumnType("int");
 
                     b.Property<int>("Quantity")
@@ -211,7 +282,7 @@ namespace GearShop.Migrations
 
                     b.HasIndex("ProductTypeId");
 
-                    b.ToTable("products", (string)null);
+                    b.ToTable("products");
                 });
 
             modelBuilder.Entity("GearShop.Models.ProductImage", b =>
@@ -236,7 +307,7 @@ namespace GearShop.Migrations
 
                     b.HasIndex("ProductId");
 
-                    b.ToTable("productImages", (string)null);
+                    b.ToTable("productImages");
                 });
 
             modelBuilder.Entity("GearShop.Models.ProductType", b =>
@@ -272,7 +343,7 @@ namespace GearShop.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("productTypes", (string)null);
+                    b.ToTable("productTypes");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
@@ -562,7 +633,7 @@ namespace GearShop.Migrations
                     b.HasOne("GearShop.Models.Product", "Product")
                         .WithMany("Comments")
                         .HasForeignKey("ProductId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Order");
@@ -579,7 +650,7 @@ namespace GearShop.Migrations
                         .IsRequired();
 
                     b.HasOne("GearShop.Models.Product", "Product")
-                        .WithMany()
+                        .WithMany("Orders")
                         .HasForeignKey("ProductId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -593,15 +664,11 @@ namespace GearShop.Migrations
                 {
                     b.HasOne("GearShop.Models.Brand", "Brand")
                         .WithMany("Products")
-                        .HasForeignKey("BrandId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("BrandId");
 
                     b.HasOne("GearShop.Models.ProductType", "ProductType")
                         .WithMany("Products")
-                        .HasForeignKey("ProductTypeId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("ProductTypeId");
 
                     b.Navigation("Brand");
 
@@ -685,6 +752,8 @@ namespace GearShop.Migrations
                     b.Navigation("Comments");
 
                     b.Navigation("Images");
+
+                    b.Navigation("Orders");
                 });
 
             modelBuilder.Entity("GearShop.Models.ProductType", b =>

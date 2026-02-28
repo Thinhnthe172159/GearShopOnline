@@ -11,6 +11,22 @@ namespace GearShop.Data
 
         }
 
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            base.OnModelCreating(modelBuilder);
+            modelBuilder.Entity<Comment>()
+                .HasOne(c => c.Order)
+                .WithMany(o => o.Comments)
+                .HasForeignKey(c => c.OrderId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<Comment>()
+                .HasOne(c => c.Product)
+                .WithMany(p => p.Comments)
+                .HasForeignKey(c => c.ProductId)
+                .OnDelete(DeleteBehavior.Restrict);
+        }
+
         public virtual DbSet<ApplicationUser> ApplicationUsers { get; set; }
         public virtual DbSet<Product> products { get; set; }
         public virtual DbSet<Brand> brands { get; set; }
